@@ -1083,4 +1083,40 @@ class PassagerController extends AbstractController
         $this->addFlash('success', 'Votre réservation a été annulée avec succès.');
         return $this->redirectToRoute('app_passager_mes_reservations');
     }
+
+    #[Route('/passager/reservation/{id}/mock-pay', name: 'app_passager_mock_payment_form')]
+    public function mockPaymentForm(Reservation $reservation): Response
+    {
+        $amount = 0.0;
+        $currency = 'TND'; // Assuming TND, adjust if needed
+
+        if ($reservation->getType() === 'EVENT' && $reservation->getAnnonceEvent()) {
+            $amount = $reservation->getAnnonceEvent()->getPrix();
+        } elseif ($reservation->getType() === 'TRAJET' && $reservation->getAnnonce() && $reservation->getAnnonce()->getTrajet()) {
+            $amount = $reservation->getAnnonce()->getTrajet()->getPrice();
+        }
+
+        // Ensure user is the owner of the reservation or has access
+        // Make sure the user is logged in and is a passager
+        $this->denyAccessUnlessGranted('ROLE_PASSAGER');
+        $user = $this->getUser();
+        if (!$user || $user->getId() !== $reservation->getUserId()) {
+            $this->addFlash('error', 'Vous n\'êtes pas autorisé à accéder à cette page.');
+            return $this->redirectToRoute('app_passager_mes_reservations');
+        }
+
+        // Ensure the reservation status is 'ACCEPTED' for payment simulation
+        if ($reservation->getStatus() !== 'ACCEPTED') {
+            $this->addFlash('error', 'Cette réservation n\'est pas en attente de paiement.');
+            return $this->redirectToRoute('app_passager_mes_reservations');
+        }
+
+        return $this->render('passager/mock_payment_form.html.twig', [
+            'reservation_id' => $reservation->getId(),
+            'amount' => $amount,
+            'currency' => $currency, // Optional: pass currency too
+            'reservation' => $reservation, // Optional: pass the whole object
+            'user' => $this->getUser() // Pass user for the layout
+        ]);
+    }
 } 

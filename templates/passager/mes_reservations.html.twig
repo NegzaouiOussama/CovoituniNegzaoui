@@ -165,6 +165,14 @@
                                             <a href="{{ path('app_chat_conversation', {'reservationId': reservation.id, 'type': reservation.type}) }}" class="px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary-dark transition-colors duration-300">
                                                 <i class="fas fa-comments mr-1"></i> Discuter avec le conducteur
                                             </a>
+                                            <a href="{{ path('app_passager_mock_payment_form', {'id': reservation.id}) }}" class="px-3 py-1.5 bg-green-500 text-white text-xs font-medium rounded-lg hover:bg-green-600 transition-colors duration-300 ml-2">
+                                                <i class="fas fa-credit-card mr-1"></i> Payer maintenant
+                                            </a>
+                                            <form action="{{ path('app_passager_annuler_reservation', {'id': reservation.id}) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette réservation?');" class="ml-2">
+                                                <button type="submit" class="px-3 py-1.5 bg-red-100 text-red-800 text-xs font-medium rounded-lg hover:bg-red-200 transition-colors duration-300">
+                                                    <i class="fas fa-times-circle mr-1"></i> Annuler
+                                                </button>
+                                            </form>
                                         {% endif %}
                                     </div>
                                     

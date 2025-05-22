@@ -1,0 +1,79 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Effectuer le Paiement{% endblock %}
+
+{% block content %}
+<div class="w-full">
+    <div class="glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-8 mb-8">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold mb-2 text-gray-800">Effectuer le Paiement Simulé</h1>
+            <p class="text-gray-600">Simulez le processus de paiement pour votre réservation.</p>
+        </div>
+
+        <div class="bg-gray-50 p-6 rounded-xl mb-6 border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Détails de la réservation (Simulation)</h2>
+            <p class="text-gray-700 mb-1">ID de la Réservation: <span class="font-medium">{{ reservation_id|default('N/A') }}</span></p>
+            <p class="text-gray-700">Montant à payer: <strong class="text-primary">{{ amount|default('XX.XX') }} TND</strong></p>
+        </div>
+        
+        <div class="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-4 mb-8 rounded-md shadow-sm" role="alert">
+            <div class="flex">
+                <div class="py-1"><i class="fas fa-info-circle fa-lg mr-3"></i></div>
+                <div>
+                    <p class="font-bold">Information Importante</p>
+                    <p class="text-sm">Ceci est une page de simulation de paiement. Aucune réelle transaction ne sera effectuée.</p>
+                    <p class="text-sm mt-1">Dans un vrai scénario, vous seriez redirigé vers une plateforme de paiement comme Flouci pour finaliser votre transaction.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button type="button" id="simulate-success" class="w-full sm:w-auto flex items-center justify-center px-6 py-3 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition-colors duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                <i class="fas fa-check-circle mr-2"></i> Simuler un Paiement Réussi
+            </button>
+            <button type="button" id="simulate-failure" class="w-full sm:w-auto flex items-center justify-center px-6 py-3 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                <i class="fas fa-times-circle mr-2"></i> Simuler un Paiement Échoué
+            </button>
+            <a href="{{ path('app_passager_mes_reservations') }}" class="w-full sm:w-auto flex items-center justify-center px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
+                <i class="fas fa-arrow-left mr-2"></i> Annuler
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const simulateSuccessBtn = document.getElementById('simulate-success');
+        const simulateFailureBtn = document.getElementById('simulate-failure');
+        const cancelBtn = document.querySelector('a[href*="app_passager_mes_reservations"]'); // More robust selector for cancel
+
+        if (simulateSuccessBtn) {
+            simulateSuccessBtn.addEventListener('click', function() {
+                alert('Paiement simulé avec succès !');
+                simulateSuccessBtn.disabled = true;
+                simulateSuccessBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                if (simulateFailureBtn) {
+                    simulateFailureBtn.disabled = true;
+                    simulateFailureBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                // Optional: Redirect after a delay or provide a link
+                // setTimeout(function() {
+                //     if(cancelBtn) cancelBtn.click(); // Simulate click on cancel to go back
+                // }, 2000); 
+            });
+        }
+
+        if (simulateFailureBtn) {
+            simulateFailureBtn.addEventListener('click', function() {
+                alert('La simulation du paiement a échoué !');
+                simulateFailureBtn.disabled = true;
+                simulateFailureBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                if (simulateSuccessBtn) {
+                    simulateSuccessBtn.disabled = true;
+                    simulateSuccessBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
