@@ -1,0 +1,26 @@
+# CKEditor configurations for the application
+# These configurations can be accessed in the Stimulus controller via data-ckeditor-config attribute
+
+parameters:
+    ckeditor_configs:
+        # Default configuration with basic toolbar options
+        default:
+            toolbar:
+                - ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'blockQuote', 'insertTable', '|', 'undo', 'redo']
+            height: 300
+            placeholder: "Tapez votre contenu ici..."
+        
+        # Minimal configuration with limited toolbar options
+        minimal:
+            toolbar:
+                - ['bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+            height: 200
+            placeholder: "Texte court..."
+        
+        # Full configuration with extended toolbar options
+        full:
+            toolbar:
+                - ['heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'link', '|', 'bulletedList', 'numberedList', '|', 'outdent', 'indent', '|', 'blockQuote']
+                - ['insertTable', 'horizontalLine', '|', 'alignment', '|', 'fontColor', 'fontBackgroundColor', '|', 'undo', 'redo']
+            height: 400
+            placeholder: "Contenu détaillé..." 

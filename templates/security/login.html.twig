@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login - CovoitUni{% endblock %}
+
+{% block body %}
+    <div class="relative min-h-[80vh] flex items-center justify-center overflow-hidden py-12">
+        {# Background design elements #}
+        <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white to-primary-ultra-light/20 -z-10"></div>
+        <div class="floating-blob animation-delay-2000"></div>
+        <div class="floating-blob animation-delay-4000"></div>
+        <div class="floating-blob"></div>
+        
+        <div class="container mx-auto px-4">
+            <div class="max-w-md mx-auto glass-card relative z-10 backdrop-blur-md bg-white/70 rounded-2xl shadow-xl p-10 border border-white/20 transform transition-all duration-500">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary-light/10 rounded-full filter blur-3xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/10 rounded-full filter blur-3xl"></div>
+                
+                <h1 class="hero-title text-3xl font-extrabold mb-2 text-center bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">Welcome Back</h1>
+                
+                <div class="mb-8">
+                    <p class="text-center text-gray-600">Log in to your CovoitUni account</p>
+                </div>
+                
+                {% if error %}
+                    <div class="bg-red-100/80 backdrop-blur-sm border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6" role="alert">
+                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                    </div>
+                {% endif %}
+                
+                {% for flashError in app.flashes('error') %}
+                    <div class="bg-red-100/80 backdrop-blur-sm border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6" role="alert">
+                        {{ flashError }}
+                    </div>
+                {% endfor %}
+                
+                {% for flashSuccess in app.flashes('success') %}
+                    <div class="bg-green-100/80 backdrop-blur-sm border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-6" role="alert">
+                        {{ flashSuccess }}
+                    </div>
+                {% endfor %}
+                
+                <form method="post">
+                    <div class="space-y-5">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary z-10">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="filter: none;">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                </svg>
+                            </div>
+                            <input type="email" id="email" name="email" value="{{ last_username|default('') }}" placeholder="Email address" class="bg-white/80 w-full p-4 pl-10 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all duration-300" required autofocus>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary z-10">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="filter: none;">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <input type="password" id="password" name="password" placeholder="Password" class="bg-white/80 w-full p-4 pl-10 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all duration-300" required>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="remember_me" name="_remember_me" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
+                                <label for="remember_me" class="ml-2 text-sm text-gray-600">Remember me</label>
+                            </div>
+                            <div>
+                                <a href="{{ path('app_forgot_password') }}" class="text-sm text-primary hover:text-primary-dark transition-colors duration-300">Forgot password?</a>
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                        
+                        <div class="pt-2">
+                            <button type="submit" class="w-full action-btn text-white font-medium p-4 rounded-xl bg-gradient-to-r from-primary to-primary-dark shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
+                                Sign In
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="mt-8 text-center">
+                    <p class="text-gray-600">Don't have an account? <a href="{{ path('app_register') }}" class="text-primary hover:text-primary-dark font-medium transition-colors duration-300 border-flow">Create Account</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

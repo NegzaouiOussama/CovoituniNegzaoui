@@ -1,0 +1,196 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Modifier mon véhicule{% endblock %}
+
+{% block content %}
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-primary">Modifier mon véhicule</h1>
+        <p class="text-gray-600 mt-2">Mettre à jour les informations de votre véhicule</p>
+        <a href="{{ path('app_conducteur_voiture') }}" class="inline-flex items-center mt-4 px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Retour
+        </a>
+    </div>
+    
+    {% for message in app.flashes('error') %}
+        <div class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
+            {{ message }}
+        </div>
+    {% endfor %}
+    
+    <div class="bg-white rounded-lg shadow p-6 border border-gray-100">
+        <form method="POST" action="{{ path('app_conducteur_voiture_edit') }}" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="plaqueImatriculation" class="block text-sm font-medium text-gray-700 mb-1">
+                        Plaque d'immatriculation *
+                    </label>
+                    <input type="text" id="plaqueImatriculation" name="plaqueImatriculation" 
+                           class="w-full rounded-lg border-gray-300 shadow-sm"
+                           placeholder="AB-123-CD" value="{{ voiture.plaqueImatriculation }}" required>
+                    <p class="text-xs text-gray-500 mt-1">Format: XX-123-XX ou XX123XX</p>
+                </div>
+                
+                <div>
+                    <label for="dateImatriculation" class="block text-sm font-medium text-gray-700 mb-1">
+                        Date d'immatriculation *
+                    </label>
+                    <input type="date" id="dateImatriculation" name="dateImatriculation" 
+                           class="w-full rounded-lg border-gray-300 shadow-sm"
+                           value="{{ voiture.dateImatriculation|date('Y-m-d') }}" required>
+                </div>
+                
+                <div>
+                    <label for="make-dropdown" class="block text-sm font-medium text-gray-700 mb-1">
+                        Marque *
+                    </label>
+                    <select id="make-dropdown" class="w-full rounded-lg border-gray-300 shadow-sm" required>
+                        <option value="">Sélectionnez une marque</option>
+                        {% if carMakes is defined and carMakes|length > 0 %}
+                            {% for make in carMakes %}
+                                <option value="{{ make.data.id }}" {% if make.data.attributes.name == voiture.marque %}selected{% endif %}>
+                                    {{ make.data.attributes.name }}
+                                </option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    <input type="hidden" id="marque" name="marque" value="{{ voiture.marque }}" required>
+                </div>
+                
+                <div>
+                    <label for="model-dropdown" class="block text-sm font-medium text-gray-700 mb-1">
+                        Modèle *
+                    </label>
+                    <select id="model-dropdown" class="w-full rounded-lg border-gray-300 shadow-sm" required>
+                        <option value="">Chargement des modèles...</option>
+                    </select>
+                    <input type="hidden" id="modele" name="modele" value="{{ voiture.modele }}" required>
+                </div>
+                
+                <div>
+                    <label for="couleur" class="block text-sm font-medium text-gray-700 mb-1">
+                        Couleur *
+                    </label>
+                    <input type="text" id="couleur" name="couleur" 
+                           class="w-full rounded-lg border-gray-300 shadow-sm"
+                           placeholder="Noir, Blanc, Rouge, etc." value="{{ voiture.couleur }}" required>
+                </div>
+                
+                {% if categories is defined and categories|length > 0 %}
+                <div>
+                    <label for="categorie" class="block text-sm font-medium text-gray-700 mb-1">
+                        Catégorie *
+                    </label>
+                    <select id="categorie" name="categorie_id" 
+                            class="w-full rounded-lg border-gray-300 shadow-sm"
+                            required>
+                        {% for categorie in categories %}
+                            <option value="{{ categorie.id }}" {% if voiture.categorie and voiture.categorie.id == categorie.id %}selected{% endif %}>
+                                {{ categorie.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+                    Description (optionnelle)
+                </label>
+                <textarea id="description" name="description" rows="4" 
+                          class="w-full rounded-lg border-gray-300 shadow-sm"
+                          placeholder="Décrivez votre véhicule (options, particularités, etc.)">{{ voiture.description }}</textarea>
+            </div>
+            
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg shadow hover:bg-primary-dark">
+                    Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const makeDropdown = document.getElementById('make-dropdown');
+        const modelDropdown = document.getElementById('model-dropdown');
+        const marqueInput = document.getElementById('marque');
+        const modeleInput = document.getElementById('modele');
+        const currentModele = "{{ voiture.modele }}";
+        
+        // Load models for the selected make on page load
+        if (makeDropdown.value) {
+            loadModels(makeDropdown.value, currentModele);
+        }
+
+        // Update hidden input when dropdown changes
+        makeDropdown.addEventListener('change', function() {
+            if (this.value) {
+                const selectedOption = this.options[this.selectedIndex];
+                marqueInput.value = selectedOption.text;
+                
+                // Load models for this make
+                loadModels(this.value);
+            } else {
+                // Reset model dropdown when no make is selected
+                modelDropdown.innerHTML = '<option value="">Sélectionnez d\'abord une marque</option>';
+                modelDropdown.disabled = true;
+                marqueInput.value = '';
+                modeleInput.value = '';
+            }
+        });
+
+        // Update hidden input when model dropdown changes
+        modelDropdown.addEventListener('change', function() {
+            if (this.value) {
+                const selectedOption = this.options[this.selectedIndex];
+                modeleInput.value = selectedOption.text;
+            } else {
+                modeleInput.value = '';
+            }
+        });
+        
+        // Function to load models from API
+        function loadModels(makeId, preselectedModel = null) {
+            // Clear model dropdown and show loading
+            modelDropdown.innerHTML = '<option value="">Chargement des modèles...</option>';
+            modelDropdown.disabled = true;
+            
+            // Fetch models for the selected make
+            fetch(`/conducteur/api/car-models/${makeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear loading option
+                    modelDropdown.innerHTML = '<option value="">Sélectionnez un modèle</option>';
+                    
+                    // Add model options from API response
+                    data.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.data.id;
+                        option.textContent = model.data.attributes.name;
+                        
+                        // Preselect the current model if it matches
+                        if (preselectedModel && model.data.attributes.name === preselectedModel) {
+                            option.selected = true;
+                        }
+                        
+                        modelDropdown.appendChild(option);
+                    });
+                    
+                    // Enable the model dropdown
+                    modelDropdown.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error fetching models:', error);
+                    modelDropdown.innerHTML = '<option value="">Erreur de chargement</option>';
+                });
+        }
+    });
+</script>
+{% endblock %} 

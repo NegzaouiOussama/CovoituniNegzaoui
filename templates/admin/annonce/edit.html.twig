@@ -1,0 +1,152 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier l'Annonce{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-blue {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: rgb(37, 99, 235);
+            border: none;
+        }
+        .btn-blue:hover {
+            background-color: rgba(37, 99, 235, 0.2);
+        }
+        .btn-yellow {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: rgb(245, 158, 11);
+            border: none;
+        }
+        .btn-yellow:hover {
+            background-color: rgba(245, 158, 11, 0.2);
+        }
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800">Modifier l'Annonce #{{ annonce.id }}</h1>
+            <div class="flex space-x-2">
+                <a href="{{ path('app_admin_annonces') }}" class="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Retour à la liste
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Modifier les informations</h2>
+            </div>
+
+            <form method="post" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="form-group">
+                            <label for="titre" class="form-label">Titre</label>
+                            <input type="text" id="titre" name="titre" value="{{ annonce.titre }}" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea id="description" name="description" rows="4" class="form-control">{{ annonce.description }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="departure_date" class="form-label">Date de départ</label>
+                            <input type="datetime-local" id="departure_date" name="departure_date" 
+                                value="{{ annonce.departureDate|date('Y-m-d\\TH:i') }}" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="available_seats" class="form-label">Places disponibles</label>
+                            <input type="number" id="available_seats" name="seats" value="{{ annonce.availableSeats }}" 
+                                min="1" max="10" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="form-group">
+                            <label for="trajet_id" class="form-label">Trajet</label>
+                            <select id="trajet_id" name="trajet_id" class="form-control">
+                                <option value="">-- Sélectionner un trajet --</option>
+                                {% for trajet in trajets %}
+                                    <option value="{{ trajet.id }}" {% if annonce.trajet and annonce.trajet.id == trajet.id %}selected{% endif %}>
+                                        {{ trajet.departurePoint }} → {{ trajet.arrivalPoint }} ({{ trajet.price }} €)
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="conducteur_id" class="form-label">Conducteur</label>
+                            <select id="conducteur_id" name="conducteur_id" class="form-control">
+                                <option value="">-- Sélectionner un conducteur --</option>
+                                {% for conducteur in conducteurs %}
+                                    <option value="{{ conducteur.id }}" {% if annonce.driverId == conducteur.id %}selected{% endif %}>
+                                        {{ conducteur.prenom }} {{ conducteur.nom }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="status" class="form-label">Statut</label>
+                            <select id="status" name="status" class="form-control">
+                                <option value="ouvert" {% if annonce.status == 'ouvert' %}selected{% endif %}>Ouvert</option>
+                                <option value="fermé" {% if annonce.status == 'fermé' %}selected{% endif %}>Fermé</option>
+                                <option value="annulé" {% if annonce.status == 'annulé' %}selected{% endif %}>Annulé</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3">
+                    <a href="{{ path('app_admin_annonce_show', {'id': annonce.id}) }}" class="btn btn-blue">
+                        Annuler
+                    </a>
+                    <button type="submit" class="btn btn-yellow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

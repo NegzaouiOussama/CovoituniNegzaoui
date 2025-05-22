@@ -1,0 +1,133 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Historique des Réservations{% endblock %}
+
+{% block content %}
+    <div class="w-full">
+        <div class="glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-8 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2 text-gray-800">Historique des réservations</h1>
+                    <p class="text-gray-600">Consultez vos trajets passés et terminés.</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="{{ path('app_passager_mes_reservations') }}" class="inline-flex items-center px-4 py-2 bg-gray-50 text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-100 transition duration-300">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Retour aux réservations
+                    </a>
+                </div>
+            </div>
+
+            {% if reservations is empty %}
+                <div class="bg-gray-50 rounded-xl p-8 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 class="mt-4 text-xl font-medium text-gray-900">Aucun trajet terminé</h3>
+                    <p class="mt-2 text-gray-600">Votre historique de réservations est vide pour le moment.</p>
+                    <a href="{{ path('app_passager_liste_annonce') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition duration-300">
+                        <i class="fas fa-search mr-2"></i>
+                        Trouver une annonce
+                    </a>
+                </div>
+            {% else %}
+                <div class="space-y-6">
+                    {% for reservation in reservations %}
+                        <div class="bg-white shadow-md rounded-xl overflow-hidden">
+                            <div class="p-5">
+                                <div class="flex flex-col md:flex-row md:justify-between md:items-start">
+                                    <div class="mb-4 md:mb-0">
+                                        <div class="flex items-center">
+                                            <div class="font-bold text-lg text-gray-900 mr-3">
+                                                {% if reservation.type == 'EVENT' and reservation.annonceEvent %}
+                                                    {{ reservation.annonceEvent.departurePoint }} → {{ reservation.annonceEvent.arrivalPoint }}
+                                                {% elseif reservation.annonce and reservation.annonce.trajet %}
+                                                    {{ reservation.annonce.trajet.getDeparturePoint() }} → {{ reservation.annonce.trajet.getArrivalPoint() }}
+                                                {% else %}
+                                                    <span class="text-gray-500">Informations non disponibles</span>
+                                                {% endif %}
+                                            </div>
+                                            <span class="px-2.5 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                                                Terminé
+                                            </span>
+                                        </div>
+                                        
+                                        {% if reservation.type == 'EVENT' and reservation.annonceEvent and reservation.annonceEvent.event %}
+                                            <div class="text-xs text-gray-500 mt-1">
+                                                Pour l'événement: {{ reservation.annonceEvent.event.nom }}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="flex items-center mt-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <span class="text-gray-700">
+                                                {% if reservation.type == 'EVENT' and reservation.annonceEvent %}
+                                                    {{ reservation.annonceEvent.departureDate|date("d/m/Y à H:i") }}
+                                                {% elseif reservation.annonce %}
+                                                    {{ reservation.annonce.departureDate|date("d/m/Y à H:i") }}
+                                                {% else %}
+                                                    {{ reservation.dateReservation|date("d/m/Y à H:i") }}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex flex-col md:items-end">
+                                        <div class="flex items-center">
+                                            <div class="h-8 w-8 rounded-full bg-gradient-to-r from-primary to-primary-dark flex items-center justify-center text-white text-sm font-bold mr-2">
+                                                C
+                                            </div>
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {% if reservation.type == 'EVENT' and reservation.annonceEvent %}
+                                                    {% if reservation.driver %}
+                                                        {{ reservation.driver.prenom }} {{ reservation.driver.nom }}
+                                                    {% else %}
+                                                        Conducteur #{{ reservation.annonceEvent.driverId }}
+                                                    {% endif %}
+                                                {% elseif reservation.annonce %}
+                                                    {% if reservation.driver %}
+                                                        {{ reservation.driver.prenom }} {{ reservation.driver.nom }}
+                                                    {% else %}
+                                                        Conducteur #{{ reservation.annonce.driverId }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    Conducteur inconnu
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3 text-base font-medium text-gray-900">
+                                            {% if reservation.type == 'EVENT' and reservation.annonceEvent %}
+                                                {{ reservation.annonceEvent.prix|number_format(2, ',', ' ') }} €
+                                            {% elseif reservation.annonce and reservation.annonce.trajet %}
+                                                {{ reservation.annonce.trajet.price }} €
+                                            {% else %}
+                                                - €
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {% if reservation.comment %}
+                                    <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                                        <div class="flex items-start">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                            </svg>
+                                            <div>
+                                                <p class="text-sm font-medium text-blue-700">Votre commentaire</p>
+                                                <p class="text-sm text-gray-700 mt-1">{{ reservation.comment }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %} 

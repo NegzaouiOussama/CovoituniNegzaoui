@@ -1,0 +1,17 @@
+framework:
+    mailer:
+        dsn: 'gmail+smtp://%env(resolve:MAILER_USER)%:%env(resolve:MAILER_PASSWORD)%@default'
+        envelope:
+            sender: '%env(resolve:MAILER_USER)%'
+
+# Définir les variables d'environnement dans .env.local
+# Ou les définir ici pour les tests
+when@dev:
+    framework:
+        mailer:
+            dsn: 'null://null'  # Désactiver réellement l'envoi d'email en dev
+            
+when@test:
+    framework:
+        mailer:
+            dsn: 'null://null'

@@ -1,0 +1,77 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Ajouter une annonce{% endblock %}
+
+{% block content %}
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Ajouter une annonce</h1>
+        <p class="text-gray-600">Créez une annonce pour un trajet existant</p>
+    </div>
+    
+    <div class="glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-8">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Détails de l'annonce
+        </h2>
+        
+        <form action="{{ path('app_conducteur_ajouter_annonce_submit') }}" method="post" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="trajet_id" class="block text-sm font-medium text-gray-700 mb-1">Trajet associé</label>
+                    <select id="trajet_id" name="trajet_id" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300">
+                        <option value="">Sélectionnez un trajet</option>
+                        {% for trajet in trajets %}
+                            <option value="{{ trajet.id }}">{{ trajet.titre }} ({{ trajet.getDeparturePoint() }} → {{ trajet.getArrivalPoint() }})</option>
+                        {% endfor %}
+                    </select>
+                    <div class="mt-2 text-sm text-gray-600">
+                        Pas de trajet disponible ? <a href="{{ path('app_conducteur_ajouter_trajet') }}" class="text-primary hover:underline">Créez d'abord un trajet</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="titre" class="block text-sm font-medium text-gray-700 mb-1">Titre de l'annonce</label>
+                    <input type="text" id="titre" name="titre" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300"
+                           placeholder="Titre descriptif de l'annonce">
+                </div>
+
+                <div>
+                    <label for="departure_date" class="block text-sm font-medium text-gray-700 mb-1">Date et heure de départ</label>
+                    <input type="datetime-local" id="departure_date" name="departure_date" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300">
+                </div>
+                
+                <div>
+                    <label for="available_seats" class="block text-sm font-medium text-gray-700 mb-1">Nombre de places disponibles</label>
+                    <select id="available_seats" name="available_seats" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300">
+                        {% for i in 1..4 %}
+                            <option value="{{ i }}">{{ i }} {{ i > 1 ? 'places' : 'place' }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description (facultatif)</label>
+                <textarea id="description" name="description" rows="4"
+                          class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300"
+                          placeholder="Ajoutez des détails sur votre annonce (points de rendez-vous, bagages autorisés, etc.)"></textarea>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="submit" 
+                        class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 text-sm font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Publier l'annonce
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %} 

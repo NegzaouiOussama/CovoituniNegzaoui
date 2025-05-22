@@ -1,0 +1,99 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <h1 class="mb-4">{{ page_title }}</h1>
+        
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Configuration par défaut</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="default-editor" class="form-label">Éditeur avec configuration par défaut</label>
+                            <textarea 
+                                id="default-editor" 
+                                class="form-control" 
+                                data-controller="ckeditor" 
+                                data-ckeditor-config="default" 
+                                placeholder="Tapez votre contenu ici..."></textarea>
+                            <div class="form-text">Utilise la configuration 'default' définie dans ckeditor_config.yaml</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Configuration minimale</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="minimal-editor" class="form-label">Éditeur avec configuration minimale</label>
+                            <textarea 
+                                id="minimal-editor" 
+                                class="form-control" 
+                                data-controller="ckeditor" 
+                                data-ckeditor-config="minimal" 
+                                placeholder="Texte court..."></textarea>
+                            <div class="form-text">Utilise la configuration 'minimal' définie dans ckeditor_config.yaml</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Configuration complète</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="full-editor" class="form-label">Éditeur avec configuration complète</label>
+                            <textarea 
+                                id="full-editor" 
+                                class="form-control" 
+                                data-controller="ckeditor" 
+                                data-ckeditor-config="full" 
+                                placeholder="Contenu détaillé..."></textarea>
+                            <div class="form-text">Utilise la configuration 'full' définie dans ckeditor_config.yaml</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Utilisation dans un formulaire</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Pour utiliser CKEditor dans un formulaire Symfony, ajoutez l'attribut <code>data-controller="ckeditor"</code> 
+                            au champ textarea rendu par le formulaire. Exemple:
+                        </p>
+                        <pre class="bg-light p-3 border rounded"><code>{{ '{{ form_start(form) }}
+
+{# Ajout des attributs au champ textarea #}
+{{ form_row(form.content, {
+    attr: {
+        "data-controller": "ckeditor",
+        "data-ckeditor-config": "default",
+        "placeholder": "Votre contenu ici..."
+    }
+}) }}
+
+{{ form_end(form) }}' }}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

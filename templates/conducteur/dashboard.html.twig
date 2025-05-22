@@ -1,0 +1,449 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Tableau de bord conducteur{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css">
+{% endblock %}
+
+{% block content %}
+    <div class="max-w-screen-2xl w-full mx-auto px-4 py-8">
+        <div class="w-full">
+            <!-- Header Section -->
+            <div class="bg-gradient-to-r from-primary/5 to-primary-light/10 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-6 mb-8">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                    <div>
+                        <h1 class="text-3xl font-bold mb-2 text-gray-800">
+                            <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark">
+                                Bienvenue, {{ user.prenom }}
+                            </span>
+                        </h1>
+                        <p class="text-gray-600">Voici un aperçu de votre activité en tant que conducteur</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <a href="{{ path('app_conducteur_annonce') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Ajouter une annonce
+                        </a>
+                        <a href="{{ path('app_conducteur_voiture') }}" class="inline-flex items-center px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-300 text-sm font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-2-2H7L5 14m14-4.5v9.5a1 1 0 01-1 1H6a1 1 0 01-1-1V9.5m14 0a1.5 1.5 0 00-1.5-1.5H6.5a1.5 1.5 0 00-1.5 1.5m15 0v4.5a1.5 1.5 0 01-1.5 1.5H6.5a1.5 1.5 0 01-1.5-1.5V9.5" />
+                            </svg>
+                            Gérer ma voiture
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">Trajets réalisés</p>
+                            <h3 class="text-2xl font-bold text-gray-800">{{ user.tripsCount ?? '0' }}</h3>
+                            <p class="text-xs text-green-500 mt-1 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                                +{{ random(3) }} ce mois
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">Note moyenne</p>
+                            <h3 class="text-2xl font-bold text-gray-800">{{ user.rating ?? '0' }}<span class="text-sm text-yellow-500">/5</span></h3>
+                            <div class="flex items-center mt-1">
+                                {% for i in 1..5 %}
+                                    {% if i <= (user.rating ?? 0) %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    {% else %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">Revenus totaux</p>
+                            <h3 class="text-2xl font-bold text-gray-800">{{ (random(200) + 50)|round(2) }}€</h3>
+                            <p class="text-xs text-green-500 mt-1 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                                +{{ random(30) + 5 }}€ ce mois
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">Passagers transportés</p>
+                            <h3 class="text-2xl font-bold text-gray-800">{{ random(20) + 5 }}</h3>
+                            <p class="text-xs text-green-500 mt-1 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                                +{{ random(3) + 1 }} cette semaine
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Trips Performance Chart -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800">Performance des trajets</h3>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-xs bg-primary/10 text-primary rounded-md">Mois</button>
+                            <button class="px-3 py-1 text-xs bg-gray-100 text-gray-500 rounded-md">Année</button>
+                        </div>
+                    </div>
+                    <div id="tripsChart" class="h-72"></div>
+                </div>
+                
+                <!-- Revenue Chart -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800">Revenus</h3>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-xs bg-primary/10 text-primary rounded-md">Mois</button>
+                            <button class="px-3 py-1 text-xs bg-gray-100 text-gray-500 rounded-md">Année</button>
+                        </div>
+                    </div>
+                    <div id="revenueChart" class="h-72"></div>
+                </div>
+            </div>
+            
+            <!-- Upcoming Trips Section -->
+            <div class="bg-white rounded-xl shadow-md border border-gray-100 p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800">Trajets à venir</h3>
+                    <a href="{{ path('app_conducteur_annonce') }}" class="text-sm text-primary hover:underline">Voir tout</a>
+                </div>
+                
+                {% set hasUpcomingTrips = random(1) %}
+                
+                {% if hasUpcomingTrips %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Départ</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrivée</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Places</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for i in 1..3 %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{{ "now"|date_modify("+" ~ (random(6) + 1) ~ " days")|date("d/m/Y H:i") }}</td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                                            <div class="flex items-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                {% set cities = ["Paris", "Lyon", "Marseille", "Bordeaux", "Lille", "Nantes", "Rennes", "Strasbourg", "Montpellier", "Toulouse"] %}
+                                                {{ cities[random(9)] }}
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                                            <div class="flex items-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                {% set cities = ["Paris", "Lyon", "Marseille", "Bordeaux", "Lille", "Nantes", "Rennes", "Strasbourg", "Montpellier", "Toulouse"] %}
+                                                {{ cities[random(9)] }}
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-700">{{ (random(30) + 5)|round(2) }}€</td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                                            {% set reservedSeats = random(3) %}
+                                            {% set totalSeats = reservedSeats + random(2) + 1 %}
+                                            <span class="font-medium">{{ reservedSeats }}</span>/{{ totalSeats }}
+                                        </td>
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full {{ random(1) ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                                {{ random(1) ? 'Confirmé' : 'En attente' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="bg-gray-50 rounded-lg p-8 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <p class="text-gray-500 mb-4">Vous n'avez aucun trajet à venir.</p>
+                        <a href="{{ path('app_conducteur_annonce') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary to-primary-dark text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Créer une annonce
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Bottom Row: Vehicle Summary and Event Management -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Vehicle Summary -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800">Mon véhicule</h3>
+                        <a href="{{ path('app_conducteur_voiture') }}" class="text-sm text-primary hover:underline">Gérer</a>
+                    </div>
+                    
+                    {% if voiture is defined and voiture %}
+                        <div class="flex items-start space-x-4">
+                            <div class="w-1/3 aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-2-2H7L5 14m14-4.5v9.5a1 1 0 01-1 1H6a1 1 0 01-1-1V9.5m14 0a1.5 1.5 0 00-1.5-1.5H6.5a1.5 1.5 0 00-1.5 1.5m15 0v4.5a1.5 1.5 0 01-1.5 1.5H6.5a1.5 1.5 0 01-1.5-1.5V9.5" />
+                                </svg>
+                            </div>
+                            <div class="w-2/3">
+                                <h4 class="text-xl font-semibold text-gray-800">{{ voiture.marque ?? 'Marque' }} {{ voiture.modele ?? 'Modèle' }}</h4>
+                                <div class="mt-2 space-y-1">
+                                    <p class="text-sm text-gray-600">
+                                        <span class="font-medium">Couleur:</span> {{ voiture.couleur ?? 'Non spécifiée' }}
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        <span class="font-medium">Immatriculation:</span> {{ voiture.plaqueImatriculation ?? 'Non spécifiée' }}
+                                    </p>
+                                    {% if voiture is defined and voiture.categorie %}
+                                        <p class="text-sm text-gray-600">
+                                            <span class="font-medium">Catégorie:</span> {{ voiture.categorie.nom }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                <div class="mt-4">
+                                    <a href="{{ path('app_conducteur_voiture_edit') }}" class="inline-flex items-center px-3 py-1.5 bg-white text-primary border border-primary/30 rounded-lg text-xs font-medium hover:bg-primary/5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                        Modifier
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="bg-gray-50 rounded-lg p-6 text-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-2-2H7L5 14m14-4.5v9.5a1 1 0 01-1 1H6a1 1 0 01-1-1V9.5m14 0a1.5 1.5 0 00-1.5-1.5H6.5a1.5 1.5 0 00-1.5 1.5m15 0v4.5a1.5 1.5 0 01-1.5 1.5H6.5a1.5 1.5 0 01-1.5-1.5V9.5" />
+                            </svg>
+                            <p class="text-gray-500 mb-3">Vous n'avez pas encore enregistré de véhicule</p>
+                            <a href="{{ path('app_conducteur_voiture_add') }}" class="inline-flex items-center px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:bg-primary-dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Ajouter un véhicule
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Event Management -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800">Gestion des événements</h3>
+                        <div class="flex space-x-2">
+                            <a href="{{ path('app_conducteur_participations_evenements') }}" class="text-sm text-primary hover:underline">Tous les événements</a>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex flex-col lg:flex-row lg:items-center gap-4 p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
+                            <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="font-medium text-gray-800">Forum des associations étudiantes</h4>
+                                <p class="text-sm text-gray-600">{{ "now"|date_modify("+" ~ (random(9) + 1) ~ " days")|date("d/m/Y") }} - Campus universitaire</p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span class="inline-flex px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Inscrit</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col lg:flex-row lg:items-center gap-4 p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="font-medium text-gray-800">Soirée covoiturage solidaire</h4>
+                                <p class="text-sm text-gray-600">{{ "now"|date_modify("+" ~ (random(20) + 10) ~ " days")|date("d/m/Y") }} - Salle des fêtes</p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <a href="{{ path('app_conducteur_participations_evenements') }}" class="inline-flex px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:bg-primary-dark">
+                                    S'inscrire
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <a href="{{ path('app_conducteur_participations_parraines') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Participations parrainées
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Trips Chart
+            var tripsOptions = {
+                series: [{
+                    name: 'Trajets effectués',
+                    data: [{{ random(1) }}, {{ random(2) }}, {{ random(3) }}, {{ random(2) }}, {{ random(3) }}, {{ random(4) }}, {{ random(3) }}, {{ random(2) }}, {{ random(4) }}, {{ random(3) }}, {{ random(2) }}, {{ random(3) }}]
+                }, {
+                    name: 'Réservations',
+                    data: [{{ random(2) + 1 }}, {{ random(3) + 1 }}, {{ random(4) + 1 }}, {{ random(3) + 1 }}, {{ random(4) + 1 }}, {{ random(5) + 1 }}, {{ random(4) + 1 }}, {{ random(3) + 1 }}, {{ random(5) + 1 }}, {{ random(4) + 1 }}, {{ random(3) + 1 }}, {{ random(4) + 1 }}]
+                }],
+                chart: {
+                    height: 288,
+                    type: 'area',
+                    toolbar: {
+                        show: false
+                    },
+                    fontFamily: 'Poppins, sans-serif',
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 2,
+                },
+                colors: ['#4F46E5', '#C7D2FE'],
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.3,
+                    }
+                },
+                xaxis: {
+                    categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                },
+                tooltip: {
+                    x: {
+                        format: 'dd/MM/yy HH:mm'
+                    },
+                }
+            };
+
+            var tripsChart = new ApexCharts(document.querySelector("#tripsChart"), tripsOptions);
+            tripsChart.render();
+            
+            // Revenue Chart
+            var revenueOptions = {
+                series: [{
+                    name: 'Revenus',
+                    data: [{{ random(10) + 5 }}, {{ random(15) + 10 }}, {{ random(20) + 15 }}, {{ random(18) + 12 }}, {{ random(25) + 10 }}, {{ random(30) + 15 }}, {{ random(25) + 10 }}, {{ random(20) + 15 }}, {{ random(30) + 20 }}, {{ random(25) + 15 }}, {{ random(20) + 10 }}, {{ random(25) + 15 }}]
+                }],
+                chart: {
+                    height: 288,
+                    type: 'bar',
+                    toolbar: {
+                        show: false
+                    },
+                    fontFamily: 'Poppins, sans-serif',
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 5,
+                        columnWidth: '60%',
+                    },
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                colors: ['#10B981'],
+                xaxis: {
+                    categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                },
+                yaxis: {
+                    title: {
+                        text: '€ (euros)'
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return val + " €"
+                        }
+                    }
+                }
+            };
+
+            var revenueChart = new ApexCharts(document.querySelector("#revenueChart"), revenueOptions);
+            revenueChart.render();
+        });
+    </script>
+{% endblock %} 

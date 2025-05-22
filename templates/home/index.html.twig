@@ -1,0 +1,1298 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}CovoitUni - Carpooling in Tunisia{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <style>
+        /* Additional styles for the map */
+        .custom-uni-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-location-marker div {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+        .custom-location-marker div:hover {
+            transform: scale(1.2);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        .leaflet-popup-content-wrapper button {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .leaflet-popup-content-wrapper button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .leaflet-popup-content {
+            margin: 10px 12px;
+        }
+        /* Enhanced map controls */
+        .leaflet-control-zoom {
+            border-radius: 0.5rem !important;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06) !important;
+        }
+        .leaflet-control-zoom a {
+            background-color: white !important;
+            color: #10B981 !important;
+            transition: all 0.2s ease;
+        }
+        .leaflet-control-zoom a:hover {
+            background-color: #f9fafb !important;
+            color: #059669 !important;
+        }
+        .leaflet-control-attribution {
+            background-color: rgba(255,255,255,0.8) !important;
+            backdrop-filter: blur(2px);
+            border-radius: 0.25rem;
+        }
+        /* Custom animated pulse for moving dots */
+        @keyframes map-dot-pulse {
+            0% { transform: scale(0.8); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.7; }
+        }
+        .moving-dot div {
+            animation: map-dot-pulse 1.5s infinite ease-in-out;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+{% endblock %}
+
+{% block body %}
+    {# Hero Section with Enhanced Animation #}
+    <div class="relative min-h-screen w-full flex items-center justify-center overflow-hidden perspective-1000">
+        {# Background Image with Enhanced Parallax Effect #}
+        <div class="absolute inset-0 z-0 transform-style-3d rotate-y-3 scale-105">
+            <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                 alt="Background" 
+                 class="w-full h-full object-cover scale-110 motion-safe:animate-subtle-zoom">
+            <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-primary-dark/50 mix-blend-multiply"></div>
+        </div>
+
+        {# Enhanced Decorative Elements with More Animation #}
+        <div class="absolute top-20 left-10 w-64 h-64 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+        <div class="absolute bottom-20 right-10 w-64 h-64 bg-primary-light/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-40 left-1/4 w-64 h-64 bg-primary-dark/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+        <div class="absolute top-1/3 right-1/4 w-48 h-48 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-3000"></div>
+
+        {# Animated Car Silhouette - Removing this element #}
+        <!-- Removing the car silhouette animation -->
+
+        {# Content with Enhanced Typography #}
+        <div class="relative z-10 container mx-auto px-4 text-center">
+            <div class="flex items-center justify-center mb-6">
+                <div class="pulse-ring"></div>
+                <div class="text-white text-sm md:text-base font-medium bg-primary/60 backdrop-blur-md py-2 px-6 rounded-full inline-block animate-bounce-slow">
+                    <span id="activeUsers" class="font-bold mr-1">{{ random(50) + 20 }}</span> people are looking for rides right now
+                </div>
+            </div>
+            
+            <h1 class="hero-title text-6xl md:text-7xl lg:text-8xl font-extrabold mb-8 text-white drop-shadow-2xl tracking-tight animate-fade-in-up">
+                Find Your Perfect
+                <span class="block mt-2 text-primary">Carpooling Ride</span>
+            </h1>
+            <p class="hero-subtitle text-xl md:text-2xl lg:text-3xl mb-12 text-white/90 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-500">Connect with fellow travelers for safe and affordable carpooling across Tunisia</p>
+            
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 animate-fade-in-up animation-delay-1000">
+                <a href="{{ path('app_rides') }}" 
+                   class="group inline-flex items-center px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Find a Ride
+                </a>
+                <a href="{{ path('app_register') }}" 
+                   class="group inline-flex items-center px-8 py-4 text-lg font-medium border-2 border-white text-white hover:bg-white hover:text-primary rounded-xl transition-all duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Sign Up Now
+                </a>
+            </div>
+
+            {# Real-time Statistics Bar #}
+            <div class="mt-16 max-w-3xl mx-auto flex flex-wrap justify-center gap-6 text-white backdrop-blur-md bg-white/10 p-4 rounded-xl border border-white/20 animate-fade-in-up animation-delay-1500">
+                <div class="px-6 py-3">
+                    <div class="text-3xl font-bold"><span id="ridesCounter" class="counter" data-target="{{ random(1000) + 500 }}">0</span>+</div>
+                    <div class="text-xs uppercase tracking-wider">Total Rides</div>
+                </div>
+                <div class="px-6 py-3">
+                    <div class="text-3xl font-bold"><span id="usersCounter" class="counter" data-target="{{ random(2000) + 1000 }}">0</span>+</div>
+                    <div class="text-xs uppercase tracking-wider">Happy Students</div>
+                </div>
+                <div class="px-6 py-3">
+                    <div class="text-3xl font-bold"><span id="universitiesCounter" class="counter" data-target="{{ random(10) + 15 }}">0</span>+</div>
+                    <div class="text-xs uppercase tracking-wider">Universities</div>
+                </div>
+                <div class="px-6 py-3">
+                    <div class="text-3xl font-bold">$<span id="savingsCounter" class="counter" data-target="{{ random(10000) + 5000 }}">0</span>+</div>
+                    <div class="text-xs uppercase tracking-wider">Money Saved</div>
+                </div>
+            </div>
+        </div>
+
+        {# Animated Scroll Indicator #}
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <div class="p-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    {# Real-time Activity Feed #}
+    <div class="fixed right-5 bottom-5 z-50 max-w-sm w-full">
+        <div id="notificationContainer" class="space-y-2 p-2 max-h-60 overflow-hidden">
+            <!-- Notifications will be dynamically inserted here -->
+        </div>
+    </div>
+
+    {# Trending Destinations Section - NEW #}
+    <section class="relative py-20 w-full bg-gradient-to-b from-white to-primary-ultra-light/50 overflow-hidden">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="section-title text-4xl md:text-5xl font-bold text-text-dark">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark">Trending</span> Destinations
+                </h2>
+                <div class="flex space-x-2">
+                    <button id="slideLeft" class="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button id="slideRight" class="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="relative">
+                <div id="destinationsSlider" class="flex space-x-6 overflow-x-auto scrollbar-hide py-4 px-2 snap-x snap-mandatory scroll-smooth">
+                    <!-- Tunis -->
+                    <div class="min-w-[300px] md:min-w-[350px] snap-start">
+                        <div class="destination-card rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative group">
+                            <img src="https://images.unsplash.com/photo-1565689478170-6624de957899?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Tunis" class="w-full h-60 object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent">
+                                <div class="absolute bottom-0 left-0 p-6">
+                                    <h3 class="text-white text-2xl font-bold mb-1">Tunis</h3>
+                                    <div class="flex items-center space-x-2 text-white/80">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        </svg>
+                                        <span class="text-sm">{{ random(20) + 30 }} rides available</span>
+                                    </div>
+                                    <div class="mt-4 transform translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                        <a href="#" class="inline-flex items-center px-4 py-2 bg-primary rounded-lg text-white text-sm">
+                                            Explore Routes
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="absolute top-4 right-4 bg-primary/80 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">
+                                Popular
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sousse -->
+                    <div class="min-w-[300px] md:min-w-[350px] snap-start">
+                        <div class="destination-card rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative group">
+                            <img src="https://images.unsplash.com/photo-1540552999122-a0ac7a9a0008?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1472&q=80" alt="Sousse" class="w-full h-60 object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent">
+                                <div class="absolute bottom-0 left-0 p-6">
+                                    <h3 class="text-white text-2xl font-bold mb-1">Sousse</h3>
+                                    <div class="flex items-center space-x-2 text-white/80">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        </svg>
+                                        <span class="text-sm">{{ random(15) + 20 }} rides available</span>
+                                    </div>
+                                    <div class="mt-4 transform translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                        <a href="#" class="inline-flex items-center px-4 py-2 bg-primary rounded-lg text-white text-sm">
+                                            Explore Routes
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sfax -->
+                    <div class="min-w-[300px] md:min-w-[350px] snap-start">
+                        <div class="destination-card rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative group">
+                            <img src="https://images.unsplash.com/photo-1585941727906-37b7d8dcf534?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Sfax" class="w-full h-60 object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent">
+                                <div class="absolute bottom-0 left-0 p-6">
+                                    <h3 class="text-white text-2xl font-bold mb-1">Sfax</h3>
+                                    <div class="flex items-center space-x-2 text-white/80">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        </svg>
+                                        <span class="text-sm">{{ random(10) + 15 }} rides available</span>
+                                    </div>
+                                    <div class="mt-4 transform translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                        <a href="#" class="inline-flex items-center px-4 py-2 bg-primary rounded-lg text-white text-sm">
+                                            Explore Routes
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Hammamet -->
+                    <div class="min-w-[300px] md:min-w-[350px] snap-start">
+                        <div class="destination-card rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative group">
+                            <img src="https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Hammamet" class="w-full h-60 object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent">
+                                <div class="absolute bottom-0 left-0 p-6">
+                                    <h3 class="text-white text-2xl font-bold mb-1">Hammamet</h3>
+                                    <div class="flex items-center space-x-2 text-white/80">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        </svg>
+                                        <span class="text-sm">{{ random(5) + 10 }} rides available</span>
+                                    </div>
+                                    <div class="mt-4 transform translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                        <a href="#" class="inline-flex items-center px-4 py-2 bg-primary rounded-lg text-white text-sm">
+                                            Explore Routes
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="absolute top-4 right-4 bg-green-500/80 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">
+                                New
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Djerba -->
+                    <div class="min-w-[300px] md:min-w-[350px] snap-start">
+                        <div class="destination-card rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative group">
+                            <img src="https://images.unsplash.com/photo-1612692246243-4fe875af79b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Djerba" class="w-full h-60 object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent">
+                                <div class="absolute bottom-0 left-0 p-6">
+                                    <h3 class="text-white text-2xl font-bold mb-1">Djerba</h3>
+                                    <div class="flex items-center space-x-2 text-white/80">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        </svg>
+                                        <span class="text-sm">{{ random(8) + 8 }} rides available</span>
+                                    </div>
+                                    <div class="mt-4 transform translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                        <a href="#" class="inline-flex items-center px-4 py-2 bg-primary rounded-lg text-white text-sm">
+                                            Explore Routes
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="absolute top-4 right-4 bg-blue-500/80 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">
+                                Beach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Live Map Section #}
+    <section class="relative py-24 w-full bg-gradient-to-b from-white to-primary-ultra-light/30">
+        <div class="container mx-auto px-4">
+            <h2 class="section-title text-4xl md:text-5xl font-bold text-center mb-6">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark">Live</span> Popular Routes
+            </h2>
+            <p class="text-center text-gray-600 max-w-3xl mx-auto mb-16">Track real-time trips between popular destinations and find the perfect ride for your journey</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="lg:col-span-2 glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-6">
+                    <div class="h-80 md:h-96 rounded-lg overflow-hidden">
+                        <!-- OpenStreetMap integration -->
+                        <div id="liveMap" class="w-full h-full bg-gray-100 relative">
+                            <!-- Map will be initialized here by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex flex-wrap justify-center gap-4">
+                        <div class="bg-primary-ultra-light px-4 py-2 rounded-lg text-primary flex items-center">
+                            <span class="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                            <span id="activeRides" class="font-medium">{{ random(20) + 5 }}</span> Active Rides
+                        </div>
+                        <div class="bg-primary-ultra-light px-4 py-2 rounded-lg text-primary flex items-center">
+                            <span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                            <span id="completedRides" class="font-medium">{{ random(100) + 50 }}</span> Completed Today
+                        </div>
+                        <div class="bg-primary-ultra-light px-4 py-2 rounded-lg text-primary flex items-center">
+                            <span class="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                            <span id="popularRoutes" class="font-medium">{{ random(10) + 3 }}</span> Popular Routes
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interactive Search Card -->
+                <div class="glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full transform translate-x-20 -translate-y-20"></div>
+                    <div class="absolute bottom-0 left-0 w-40 h-40 bg-primary/5 rounded-full transform -translate-x-20 translate-y-20"></div>
+                    
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 relative">Find Your Ride</h3>
+                    
+                    <form class="space-y-4 relative">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" placeholder="From (city or destination)" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                            <div class="suggestions-from absolute z-10 left-0 right-0 bg-white shadow-lg rounded-lg mt-1 max-h-60 overflow-y-auto hidden">
+                                <div class="p-2">
+                                    <div class="suggestion-item p-2 hover:bg-primary-ultra-light rounded-md cursor-pointer">Tunis</div>
+                                    <div class="suggestion-item p-2 hover:bg-primary-ultra-light rounded-md cursor-pointer">Sousse</div>
+                                    <div class="suggestion-item p-2 hover:bg-primary-ultra-light rounded-md cursor-pointer">Sfax</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" placeholder="To (city or destination)" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                            <div class="suggestions-to absolute z-10 left-0 right-0 bg-white shadow-lg rounded-lg mt-1 max-h-60 overflow-y-auto hidden">
+                                <div class="p-2">
+                                    <div class="suggestion-item p-2 hover:bg-primary-ultra-light rounded-md cursor-pointer">Hammamet</div>
+                                    <div class="suggestion-item p-2 hover:bg-primary-ultra-light rounded-md cursor-pointer">Monastir</div>
+                                    <div class="suggestion-item p-2 hover:bg-primary-ultra-light rounded-md cursor-pointer">Djerba</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <input type="date" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                        </div>
+                        
+                        <div>
+                            <select class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                                <option value="1">1 passenger</option>
+                                <option value="2">2 passengers</option>
+                                <option value="3">3 passengers</option>
+                                <option value="4">4 passengers</option>
+                            </select>
+                        </div>
+                        
+                        <button type="button" id="searchRidesBtn" class="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center group transition-all hover:shadow-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Search Rides
+                        </button>
+                    </form>
+                    
+                    <!-- Live search results - hidden initially -->
+                    <div id="searchResults" class="mt-6 hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-semibold text-gray-800">Available Rides</h4>
+                            <div class="text-sm text-primary flex items-center">
+                                <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
+                                Live results
+                            </div>
+                        </div>
+                        
+                        <!-- Animated loader -->
+                        <div id="searchLoader" class="flex justify-center py-4">
+                            <div class="loader-dots flex space-x-2">
+                                <div class="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                                <div class="w-2 h-2 bg-primary rounded-full animate-bounce animation-delay-200"></div>
+                                <div class="w-2 h-2 bg-primary rounded-full animate-bounce animation-delay-400"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="rideResultsList" class="space-y-3 hidden">
+                            <!-- Example ride results that will be shown after search -->
+                            <div class="ride-result p-3 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-md transition-all flex justify-between items-center cursor-pointer bg-white">
+                                <div>
+                                    <div class="font-medium text-gray-800">Tunis → Sousse</div>
+                                    <div class="text-sm text-gray-500">Tomorrow, 9:30 AM</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-primary">15 DT</div>
+                                    <div class="text-xs text-gray-500">2 seats left</div>
+                                </div>
+                            </div>
+                            
+                            <div class="ride-result p-3 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-md transition-all flex justify-between items-center cursor-pointer bg-white">
+                                <div>
+                                    <div class="font-medium text-gray-800">Tunis → Sfax</div>
+                                    <div class="text-sm text-gray-500">Friday, 2:00 PM</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-primary">25 DT</div>
+                                    <div class="text-xs text-gray-500">1 seat left</div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center py-2">
+                                <a href="#" class="text-sm text-primary hover:underline">View all 7 results</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Latest Rides Section (Enhanced) #}
+    <section class="relative py-24 w-full bg-white">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-16">
+                <h2 class="section-title text-4xl md:text-5xl font-bold text-text-dark mb-4 sm:mb-0">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark">Latest</span> Rides
+                </h2>
+                <div class="flex items-center gap-4">
+                    <div class="px-4 py-2 bg-primary-ultra-light text-primary rounded-full text-sm font-medium flex items-center">
+                        <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                        Updating live
+                    </div>
+                <a href="{{ path('app_rides') }}" class="group flex items-center text-primary hover:text-primary-dark font-medium transition-all border border-primary/20 hover:border-primary px-4 py-2 rounded-full">
+                    View All
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                </a>
+                </div>
+        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for ride in latest_rides %}
+                    <div class="group bg-white backdrop-blur-md bg-opacity-80 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 hover:border-primary/20">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="font-semibold text-xl group-hover:text-primary transition-colors duration-300">{{ ride.titre }}</h3>
+                            <span class="px-4 py-1 bg-primary-ultra-light text-primary rounded-full text-sm font-medium shadow-sm">{{ ride.trajet.price }} DT</span>
+                        </div>
+                        <div class="space-y-5">
+                            <div class="flex items-center">
+                                <span class="w-12 h-12 flex items-center justify-center bg-primary-ultra-light rounded-full mr-4 text-primary group-hover:scale-110 transition-transform">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    </svg>
+                                </span>
+                                <div>
+                                    <p class="text-sm text-gray-500 uppercase tracking-wide">From</p>
+                                    <p class="font-medium text-lg">{{ ride.trajet.departurePoint }}</p>
+                                </div>
+                    </div>
+                            <div class="flex items-center">
+                                <span class="w-12 h-12 flex items-center justify-center bg-primary-ultra-light rounded-full mr-4 text-primary group-hover:scale-110 transition-transform">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    </svg>
+                                </span>
+                                <div>
+                                    <p class="text-sm text-gray-500 uppercase tracking-wide">To</p>
+                                    <p class="font-medium text-lg">{{ ride.trajet.arrivalPoint }}</p>
+                    </div>
+                </div>
+                            <div class="flex items-center">
+                                <span class="w-12 h-12 flex items-center justify-center bg-primary-ultra-light rounded-full mr-4 text-primary group-hover:scale-110 transition-transform">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </span>
+                                <div>
+                                    <p class="text-sm text-gray-500 uppercase tracking-wide">Date</p>
+                                    <p class="font-medium text-lg">{{ ride.departureDate|date('d M Y H:i') }}</p>
+                                </div>
+                </div>
+        </div>
+                        <div class="mt-8 flex justify-between items-center">
+                            <span class="inline-flex items-center px-4 py-2 bg-primary-ultra-light text-primary rounded-full text-sm font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                {{ ride.availableSeats }} seats
+                            </span>
+                            <a href="{{ path('app_rides_show', {'id': ride.id}) }}" 
+                               class="inline-flex items-center px-4 py-2 rounded-full border border-primary/30 text-primary hover:text-white hover:bg-primary transition-all duration-300 group">
+                                View Details
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
+        </div>
+                    </div>
+                {% else %}
+                    <div class="col-span-3 bg-white backdrop-blur-md bg-opacity-80 rounded-2xl p-12 text-center border border-gray-100 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <p class="text-gray-500 text-xl">No rides available at the moment.</p>
+                    </div>
+                {% endfor %}
+                </div>
+        </div>
+    </section>
+
+    {# Features Section #}
+    <section class="relative py-32 w-full overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary-ultra-light/40 to-white"></div>
+        <div class="container mx-auto px-4 relative z-10">
+            <h2 class="section-title text-4xl md:text-5xl font-bold text-center mb-20">
+                Why Choose <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark">CovoitUni</span>?
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-16">
+                <div class="feature-box text-center group p-8 rounded-2xl hover:bg-white/80 hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100">
+                    <div class="relative w-20 h-20 mx-auto mb-6">
+                        <div class="absolute inset-0 bg-gradient-to-r from-primary to-primary-dark rounded-2xl opacity-20 group-hover:opacity-30 blur-xl transition-opacity"></div>
+                        <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-primary to-primary-dark rounded-2xl transform group-hover:rotate-6 group-hover:scale-110 transition-all duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="feature-title text-2xl font-semibold mb-4 group-hover:text-primary transition-colors">Save Money</h3>
+                    <p class="text-gray-600 text-lg group-hover:text-gray-800 transition-colors">Split travel costs with fellow travelers and save on your commute across Tunisia.</p>
+                </div>
+                <div class="feature-box text-center group p-8 rounded-2xl hover:bg-white/80 hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100">
+                    <div class="relative w-20 h-20 mx-auto mb-6">
+                        <div class="absolute inset-0 bg-gradient-to-r from-primary to-primary-dark rounded-2xl opacity-20 group-hover:opacity-30 blur-xl transition-opacity"></div>
+                        <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-primary to-primary-dark rounded-2xl transform group-hover:rotate-6 group-hover:scale-110 transition-all duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+            </div>
+                    <h3 class="feature-title text-2xl font-semibold mb-4 group-hover:text-primary transition-colors">Eco-Friendly</h3>
+                    <p class="text-gray-600 text-lg group-hover:text-gray-800 transition-colors">Reduce your carbon footprint by sharing rides with others.</p>
+                </div>
+                <div class="feature-box text-center group p-8 rounded-2xl hover:bg-white/80 hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100">
+                    <div class="relative w-20 h-20 mx-auto mb-6">
+                        <div class="absolute inset-0 bg-gradient-to-r from-primary to-primary-dark rounded-2xl opacity-20 group-hover:opacity-30 blur-xl transition-opacity"></div>
+                        <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-primary to-primary-dark rounded-2xl transform group-hover:rotate-6 group-hover:scale-110 transition-all duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+            </div>
+                    <h3 class="feature-title text-2xl font-semibold mb-4 group-hover:text-primary transition-colors">Community</h3>
+                    <p class="text-gray-600 text-lg group-hover:text-gray-800 transition-colors">Connect with people going your way and make new friends across Tunisia.</p>
+                </div>
+            </div>
+        </div>
+        <div class="absolute top-1/2 -right-40 w-80 h-80 bg-primary-ultra-light rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+        <div class="absolute bottom-0 -left-20 w-60 h-60 bg-primary-light/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+    </section>
+
+    {# Testimonials Section - NEW #}
+    <section class="relative py-24 w-full bg-gradient-to-r from-primary-ultra-light/30 to-white">
+        <div class="container mx-auto px-4">
+            <h2 class="section-title text-4xl md:text-5xl font-bold text-center mb-16">
+                What Our <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark">Users</span> Say
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Testimonial 1 -->
+                <div class="testimonial-card bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 relative">
+                    <div class="absolute -top-6 left-8">
+                        <div class="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-md">
+                            <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sophie Martin" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <div class="flex mb-4">
+                            {% for i in 1..5 %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                            {% endfor %}
+                        </div>
+                        <p class="text-gray-600 mb-4 italic">"CovoitUni made my daily commute to work so much easier and affordable. I've met amazing people and saved a lot of money!"</p>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Sophie Martin</h4>
+                            <p class="text-sm text-gray-500">Regular Commuter, Tunis</p>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 -right-3 w-24 h-24 text-primary/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="testimonial-card bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 relative">
+                    <div class="absolute -top-6 left-8">
+                        <div class="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-md">
+                            <img src="https://randomuser.me/api/portraits/men/54.jpg" alt="Thomas Dubois" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <div class="flex mb-4">
+                            {% for i in 1..5 %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                            {% endfor %}
+                        </div>
+                        <p class="text-gray-600 mb-4 italic">"As a driver, I can offset my fuel costs while helping fellow travelers. The platform is super easy to use and the people I've met are fantastic!"</p>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Thomas Dubois</h4>
+                            <p class="text-sm text-gray-500">Daily Driver, Sousse</p>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 -right-3 w-24 h-24 text-primary/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="testimonial-card bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 relative">
+                    <div class="absolute -top-6 left-8">
+                        <div class="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-md">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Camille Roux" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <div class="flex mb-4">
+                            {% for i in 1..5 %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                            {% endfor %}
+                        </div>
+                        <p class="text-gray-600 mb-4 italic">"I love that I'm reducing my carbon footprint while getting around Tunisia. The app makes it so simple to find rides exactly when I need them!"</p>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Camille Roux</h4>
+                            <p class="text-sm text-gray-500">Weekend Traveler, Sfax</p>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 -right-3 w-24 h-24 text-primary/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-16 text-center">
+                <a href="#" class="inline-flex items-center px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                    Read More Stories
+                </a>
+            </div>
+        </div>
+    </section>
+
+    {# CTA Section #}
+    <section class="relative py-32 w-full">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1464746133101-a2c3f88e0dd9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2043&q=80" 
+                 alt="Background" 
+                 class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-r from-primary/95 to-primary-dark/95 backdrop-blur-sm"></div>
+        </div>
+        
+        <div class="relative z-10 container mx-auto px-4 text-center">
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-8 drop-shadow-lg">Ready to Start Your Journey?</h2>
+            <p class="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto">Join our community today and experience the benefits of carpooling</p>
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+                <a href="{{ path('app_register') }}" 
+                   class="group inline-flex items-center px-8 py-4 text-lg font-medium bg-white text-primary hover:bg-primary-ultra-light rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Sign Up Now
+                </a>
+                <a href="{{ path('app_rides') }}" 
+                   class="group inline-flex items-center px-8 py-4 text-lg font-medium border-2 border-white text-white hover:bg-white hover:text-primary rounded-xl transition-all duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Find Rides
+                </a>
+            </div>
+        </div>
+    </section>
+
+    {# Add custom styles for animations #}
+    <style>
+        @keyframes subtle-zoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+        @keyframes gradient-x {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes car-move {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(calc(100vw + 100px)); }
+        }
+        @keyframes fade-in-up {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-subtle-zoom {
+            animation: subtle-zoom 20s ease-in-out infinite alternate;
+        }
+        .animate-gradient-x {
+            animation: gradient-x 15s ease infinite;
+            background-size: 200% 200%;
+        }
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+        .animate-car-move {
+            animation: car-move 20s linear infinite;
+        }
+        .animate-fade-in-up {
+            animation: fade-in-up 1s ease-out forwards;
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 3s ease-in-out infinite;
+        }
+        .animation-delay-500 {
+            animation-delay: 0.5s;
+        }
+        .animation-delay-1000 {
+            animation-delay: 1s;
+        }
+        .animation-delay-1500 {
+            animation-delay: 1.5s;
+        }
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+        .animation-delay-3000 {
+            animation-delay: 3s;
+        }
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+        
+        /* 3D Perspective Styles */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .rotate-y-3 {
+            transform: rotateY(3deg);
+        }
+        
+        /* Pulse ring effect */
+        .pulse-ring {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            border-radius: 100%;
+            background-color: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            animation: pulse-ring 2s infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Hide scrollbar but allow scrolling */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;  /* Chrome, Safari and Opera */
+        }
+    </style>
+
+    {# Add JavaScript for real-time features #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Counter animation
+            const counters = document.querySelectorAll('.counter');
+            const speed = 200;
+            
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const increment = target / speed;
+                
+                const updateCount = () => {
+                    const count = +counter.innerText;
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + increment);
+                        setTimeout(updateCount, 1);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                
+                updateCount();
+            });
+            
+            // Simulate real-time active users
+            setInterval(() => {
+                const activeUsersElement = document.getElementById('activeUsers');
+                const currentUsers = parseInt(activeUsersElement.textContent);
+                const change = Math.floor(Math.random() * 5) - 2; // Random change between -2 and +2
+                const newValue = Math.max(15, currentUsers + change);
+                activeUsersElement.textContent = newValue;
+                
+                // Also update active rides randomly
+                const activeRidesElement = document.getElementById('activeRides');
+                const currentRides = parseInt(activeRidesElement.textContent);
+                const ridesChange = Math.random() > 0.7 ? (Math.random() > 0.5 ? 1 : -1) : 0;
+                const newRides = Math.max(3, currentRides + ridesChange);
+                activeRidesElement.textContent = newRides;
+            }, 5000);
+            
+            // Simulate real-time notifications
+            const notifications = [
+                "New ride from Paris to Lyon just posted!",
+                "Alex just booked a ride to Bordeaux",
+                "Emma saved €15 with carpooling today",
+                "New weekend event: Campus Music Festival",
+                "3 new rides added for university routes",
+                "Lucas completed his 10th ride this month"
+            ];
+            
+            const notificationContainer = document.getElementById('notificationContainer');
+            
+            function addNotification() {
+                if (Math.random() > 0.6) { // 40% chance to show notification
+                    const notification = document.createElement('div');
+                    notification.className = 'bg-white/90 backdrop-blur-sm border border-primary/20 rounded-lg p-4 shadow-lg transform transition-all duration-500 animate-fade-in-up flex items-start';
+                    
+                    const dot = document.createElement('span');
+                    dot.className = 'inline-block w-2 h-2 bg-primary rounded-full mr-2 mt-2 flex-shrink-0';
+                    
+                    const text = document.createElement('p');
+                    text.className = 'text-sm text-gray-700';
+                    text.textContent = notifications[Math.floor(Math.random() * notifications.length)];
+                    
+                    notification.appendChild(dot);
+                    notification.appendChild(text);
+                    notificationContainer.appendChild(notification);
+                    
+                    // Remove notification after 5 seconds
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        notification.style.transform = 'translateY(10px)';
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 500);
+                    }, 5000);
+                }
+                
+                // Maximum 3 notifications at once
+                if (notificationContainer.children.length > 3) {
+                    notificationContainer.removeChild(notificationContainer.children[0]);
+                }
+            }
+            
+            // Add notifications periodically
+            setInterval(addNotification, 8000);
+            // Add first notification after 3 seconds
+            setTimeout(addNotification, 3000);
+            
+            // Old map code to remove
+            // Simulate map loading
+            // setTimeout(() => {
+            //     const mapElement = document.getElementById('liveMap');
+            //     mapElement.innerHTML = `
+            //         <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+            //             <img src="https://i.imgur.com/JVzsIsL.png" alt="Map visualization" class="w-full h-full object-cover" />
+            //         </div>
+            //     `;
+            // }, 1500);
+            
+            // Slider functionality
+            const sliderContainer = document.getElementById('destinationsSlider');
+            const slideLeftBtn = document.getElementById('slideLeft');
+            const slideRightBtn = document.getElementById('slideRight');
+            
+            if (slideLeftBtn && slideRightBtn && sliderContainer) {
+                slideLeftBtn.addEventListener('click', () => {
+                    sliderContainer.scrollBy({
+                        left: -350,
+                        behavior: 'smooth'
+                    });
+                });
+                
+                slideRightBtn.addEventListener('click', () => {
+                    sliderContainer.scrollBy({
+                        left: 350,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+            
+            // Add 3D tilt effect on mouse move for hero section
+            const heroSection = document.querySelector('.perspective-1000');
+            const heroContent = heroSection.querySelector('.z-10');
+            
+            if (heroSection && heroContent) {
+                heroSection.addEventListener('mousemove', (e) => {
+                    const xAxis = (window.innerWidth / 2 - e.pageX) / 100;
+                    const yAxis = (window.innerHeight / 2 - e.pageY) / 100;
+                    
+                    heroContent.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+                });
+                
+                // Reset transform on mouse leave
+                heroSection.addEventListener('mouseleave', () => {
+                    heroContent.style.transform = 'rotateY(0deg) rotateX(0deg)';
+                    // Add transition for smooth reset
+                    heroContent.style.transition = 'transform 0.5s ease';
+                });
+                
+                // Reset transform on mouse enter
+                heroSection.addEventListener('mouseenter', () => {
+                    // Remove transition after a short delay for smooth movement
+                    setTimeout(() => {
+                        heroContent.style.transition = 'none';
+                    }, 100);
+                });
+            }
+
+            // Interactive search functionality
+            const fromInput = document.querySelector('input[placeholder="From (city or destination)"]');
+            const toInput = document.querySelector('input[placeholder="To (city or destination)"]');
+            const suggestionsFrom = document.querySelector('.suggestions-from');
+            const suggestionsTo = document.querySelector('.suggestions-to');
+            const searchBtn = document.getElementById('searchRidesBtn');
+            const searchResults = document.getElementById('searchResults');
+            const searchLoader = document.getElementById('searchLoader');
+            const rideResultsList = document.getElementById('rideResultsList');
+            
+            // Show suggestions when input is focused
+            if (fromInput && suggestionsFrom) {
+                fromInput.addEventListener('focus', () => {
+                    suggestionsFrom.classList.remove('hidden');
+                });
+                
+                fromInput.addEventListener('blur', () => {
+                    // Small delay to allow for clicking on suggestions
+                    setTimeout(() => {
+                        suggestionsFrom.classList.add('hidden');
+                    }, 200);
+                });
+            }
+            
+            if (toInput && suggestionsTo) {
+                toInput.addEventListener('focus', () => {
+                    suggestionsTo.classList.remove('hidden');
+                });
+                
+                toInput.addEventListener('blur', () => {
+                    // Small delay to allow for clicking on suggestions
+                    setTimeout(() => {
+                        suggestionsTo.classList.add('hidden');
+                    }, 200);
+                });
+            }
+            
+            // Select suggestion when clicked
+            document.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const value = e.target.textContent;
+                    if (e.target.closest('.suggestions-from')) {
+                        fromInput.value = value;
+                        suggestionsFrom.classList.add('hidden');
+                    } else if (e.target.closest('.suggestions-to')) {
+                        toInput.value = value;
+                        suggestionsTo.classList.add('hidden');
+                    }
+                });
+            });
+            
+            // Handle search button click
+            if (searchBtn && searchResults && searchLoader && rideResultsList) {
+                searchBtn.addEventListener('click', () => {
+                    // Show search results section
+                    searchResults.classList.remove('hidden');
+                    searchLoader.classList.remove('hidden');
+                    rideResultsList.classList.add('hidden');
+                    
+                    // Simulate API call
+                    setTimeout(() => {
+                        searchLoader.classList.add('hidden');
+                        rideResultsList.classList.remove('hidden');
+                    }, 1500);
+                });
+            }
+
+            // Initialize OpenStreetMap
+            const mapElement = document.getElementById('liveMap');
+            if (mapElement) {
+                // Center map on Tunisia
+                const map = L.map('liveMap').setView([34.0, 9.0], 7);
+                
+                // Use a prettier map style
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                // Define popular locations in Tunisia with improved marker data
+                const locations = [
+                    { name: "Tunis", location: [36.8065, 10.1815], rides: 15, type: "capital" },
+                    { name: "Sousse", location: [35.8245, 10.6346], rides: 12, type: "beach" },
+                    { name: "Sfax", location: [34.7478, 10.7661], rides: 8, type: "city" },
+                    { name: "Monastir", location: [35.7643, 10.8113], rides: 10, type: "beach" },
+                    { name: "Hammamet", location: [36.4074, 10.6225], rides: 7, type: "beach" },
+                    { name: "Bizerte", location: [37.2746, 9.8714], rides: 5, type: "city" },
+                    { name: "Djerba", location: [33.8075, 10.8451], rides: 6, type: "island" }
+                ];
+                
+                // Enhanced marker icons based on location type
+                const createLocationIcon = (loc) => {
+                    let bgColor = 'bg-primary';
+                    
+                    // Different colors based on location type
+                    if (loc.type === 'beach') bgColor = 'bg-blue-500';
+                    else if (loc.type === 'capital') bgColor = 'bg-purple-600';
+                    else if (loc.type === 'island') bgColor = 'bg-emerald-500';
+                    
+                    return L.divIcon({
+                        className: 'custom-location-marker',
+                        html: `
+                            <div class="${bgColor} text-white font-bold rounded-full w-9 h-9 flex items-center justify-center shadow-lg border-2 border-white">
+                                ${loc.rides}
+                            </div>
+                        `,
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 18]
+                    });
+                };
+                
+                // Add markers with enhanced styling
+                const markers = {};
+                locations.forEach(loc => {
+                    // Create enhanced marker
+                    const marker = L.marker(loc.location, {
+                        icon: createLocationIcon(loc),
+                        riseOnHover: true
+                    }).addTo(map);
+                    
+                    // Enhanced popup with more details
+                    marker.bindPopup(`
+                        <div class="text-center p-1">
+                            <h3 class="font-bold text-primary text-lg">${loc.name}</h3>
+                            <p class="text-sm text-gray-600 mb-2">${loc.rides} active rides</p>
+                            <button class="w-full mt-1 px-3 py-1.5 bg-primary text-white text-xs rounded-lg hover:bg-primary-dark transition-colors">
+                                View Available Rides
+                            </button>
+                        </div>
+                    `);
+                    
+                    // Store marker reference for later use
+                    markers[loc.name] = marker;
+                });
+                
+                // Define realistic routes between cities using Leaflet Routing Machine
+                const routeOptions = {
+                    // Real-world routes
+                    routes: [
+                        { from: "Tunis", to: "Sousse", color: '#10B981', weight: 5, active: 3 },
+                        { from: "Tunis", to: "Sfax", color: '#3B82F6', weight: 4, active: 2 },
+                        { from: "Sousse", to: "Monastir", color: '#8B5CF6', weight: 4, active: 1 },
+                        { from: "Tunis", to: "Hammamet", color: '#3B82F6', weight: 4, active: 2 }
+                    ]
+                };
+                
+                // Function to create realistic routes with road data
+                const createRealisticRoute = (fromName, toName, color, weight, active) => {
+                    const fromMarker = markers[fromName];
+                    const toMarker = markers[toName];
+                    
+                    if (!fromMarker || !toMarker) return null;
+                    
+                    // Create a routing control that follows actual roads
+                    const control = L.Routing.control({
+                        waypoints: [
+                            L.latLng(fromMarker.getLatLng()),
+                            L.latLng(toMarker.getLatLng())
+                        ],
+                        show: false, // Hide the routing interface
+                        routeWhileDragging: false,
+                        lineOptions: {
+                            styles: [
+                                { color: color, opacity: 0.8, weight: weight }
+                            ],
+                            addWaypoints: false,
+                            extendToWaypoints: false,
+                            missingRouteTolerance: 0
+                        },
+                        createMarker: function() { return null; }, // Don't create markers at endpoints
+                        fitSelectedRoutes: false
+                    }).addTo(map);
+                    
+                    // When the route is drawn, add a popup with information
+                    control.on('routesfound', function(e) {
+                        const routes = e.routes;
+                        const route = routes[0];
+                        
+                        // Extract all coordinates from the route
+                        const coords = route.coordinates;
+                        
+                        // Create a polyline for the route that we can use for the popup
+                        const polyline = L.polyline(coords, {
+                            color: color,
+                            weight: weight,
+                            opacity: 0.8
+                        });
+                        
+                        // Find the middle point of the route for the popup position
+                        const middleIdx = Math.floor(coords.length / 2);
+                        const middlePoint = coords[middleIdx];
+                        
+                        // Add a popup to the route
+                        const popup = L.popup({
+                            closeButton: false,
+                            offset: [0, -weight]
+                        })
+                        .setLatLng(middlePoint)
+                        .setContent(`
+                            <div class="text-center py-1 px-2">
+                                <p class="font-bold text-primary text-sm">${fromName} → ${toName}</p>
+                                <div class="text-xs">
+                                    <span class="font-medium">${active} active ride(s)</span><br>
+                                    <span>${Math.round(route.summary.totalDistance / 1000)} km · ${Math.round(route.summary.totalTime / 60)} min</span>
+                                </div>
+                            </div>
+                        `);
+                        
+                        // Add hovering effect to show popup
+                        polyline.on('mouseover', function() {
+                            map.openPopup(popup);
+                        });
+                        
+                        polyline.on('mouseout', function() {
+                            map.closePopup(popup);
+                        });
+                        
+                        // Add click event to show the popup
+                        polyline.on('click', function() {
+                            map.openPopup(popup);
+                        });
+                        
+                        // Animate dots along the route
+                        animateAlongRoute(coords, color);
+                    });
+                    
+                    return control;
+                };
+                
+                // Create all real-world routes
+                setTimeout(() => {
+                    routeOptions.routes.forEach(route => {
+                        createRealisticRoute(route.from, route.to, route.color, route.weight, route.active);
+                    });
+                }, 1000); // Delay routing to ensure map is fully loaded
+                
+                // Function to animate a dot along a real route
+                function animateAlongRoute(coordinates, color) {
+                    if (!coordinates || coordinates.length < 2) return;
+                    
+                    // Create a moving dot icon with the route color
+                    const dotIcon = L.divIcon({
+                        className: 'moving-dot',
+                        html: `<div class="w-3 h-3 rounded-full shadow-lg animate-pulse" style="background-color: ${color}"></div>`,
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6]
+                    });
+                    
+                    // Create marker and add to map at the start position
+                    const movingDot = L.marker(coordinates[0], {icon: dotIcon}).addTo(map);
+                    
+                    // Animate along the path
+                    let idx = 0;
+                    const maxIdx = coordinates.length - 1;
+                    
+                    const moveInterval = setInterval(() => {
+                        // Update marker position to next coordinate
+                        movingDot.setLatLng(coordinates[idx]);
+                        
+                        // Increment position
+                        idx += 1;
+                        
+                        // When we reach the end, start over
+                        if (idx > maxIdx) {
+                            idx = 0;
+                        }
+                    }, 150); // Speed of movement
+                    
+                    // Return interval for potential cleanup
+                    return moveInterval;
+                }
+            }
+        });
+    </script>
+{% endblock %} 

@@ -1,0 +1,1052 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Background and global styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #e6ffec 0%, #c1f2d1 100%);
+            background-attachment: fixed;
+        }
+        
+        /* Offcanvas menu styles */
+        .offcanvas-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background: linear-gradient(180deg, #1e8449 0%, #196f3d 100%);
+            z-index: 1050;
+            transition: all 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            color: #fff;
+        }
+        
+        .offcanvas-menu.active {
+            left: 0;
+        }
+        
+        .offcanvas-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+            z-index: 1040;
+            display: none;
+        }
+        
+        .offcanvas-backdrop.active {
+            display: block;
+        }
+        
+        body.menu-open {
+            overflow: hidden;
+        }
+        
+        /* Menu items */
+        .sidebar-link {
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-link.active,
+        .sidebar-link:hover {
+            border-left-color: #2ecc71;
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .sidebar-link svg {
+            transition: transform 0.2s ease;
+        }
+        
+        .sidebar-link:hover svg {
+            transform: translateX(3px);
+        }
+
+        /* Animation effects */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .animate-slide-up {
+            animation: slideInUp 0.5s ease forwards;
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.5s ease forwards;
+        }
+
+        /* Dashboard card styles */
+        .stat-card {
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, var(--accent-color-light), var(--accent-color));
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            background: linear-gradient(to right, var(--accent-color-dark), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .metric-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        
+        /* Main content container */
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.15);
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+{% endblock %}
+
+{% block body %}
+{# Navbar Menu Button #}
+<div class="fixed top-4 left-4 z-50">
+    <button id="menuToggle" class="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+</div>
+
+{# Offcanvas Menu #}
+<div class="offcanvas-backdrop"></div>
+<div class="offcanvas-menu p-0">
+    <div class="p-6 bg-gradient-to-b from-green-700 to-green-600">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-white">Admin Panel</h2>
+            <button id="closeMenu" class="text-white/80 hover:text-white focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <div class="mb-6">
+            <div class="flex items-center mb-4">
+                {% if user.imagePath %}
+                    <img src="{{ asset(user.imagePath) }}" alt="{{ user.username }}" class="w-12 h-12 rounded-full object-cover mr-3 border-2 border-white/30">
+                {% else %}
+                    <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-xl font-bold mr-3 border border-white/30">
+                        {{ user.prenom|first }}{{ user.nom|first }}
+                    </div>
+                {% endif %}
+                <div>
+                    <p class="font-medium text-white">{{ user.prenom }} {{ user.nom }}</p>
+                    <p class="text-sm text-white/70">{{ user.email }}</p>
+                    <p class="text-xs text-white/80 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Administrator
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="px-3 py-4">
+        <div class="text-xs uppercase text-white/50 font-semibold px-4 mb-2">Core</div>
+        <a href="{{ path('app_admin_dashboard') }}" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if app.request.get('_route') == 'app_admin_dashboard' %}active bg-white/10 text-white{% else %}text-white/70 hover:text-white{% endif %} transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Dashboard
+        </a>
+        
+        <div class="text-xs uppercase text-white/50 font-semibold px-4 mb-2 mt-6">Management</div>
+        <a href="{{ path('app_admin_users') }}" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if app.request.get('_route') starts with 'app_admin_user' or app.request.get('_route') == 'app_admin_users' or app.request.get('_route') == 'app_user_edit_roles' %}active bg-white/10 text-white{% else %}text-white/70 hover:text-white{% endif %} transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Utilisateurs
+        </a>
+        <a href="{{ path('app_admin_annonces') }}" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if app.request.get('_route') starts with 'app_admin_annonce' %}active bg-white/10 text-white{% else %}text-white/70 hover:text-white{% endif %} transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+            </svg>
+            Annonces
+        </a>
+        <a href="{{ path('app_admin_trajets') }}" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if app.request.get('_route') starts with 'app_admin_trajet' %}active bg-white/10 text-white{% else %}text-white/70 hover:text-white{% endif %} transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Trajets
+        </a>
+        <a href="{{ path('app_admin_reservations') }}" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if app.request.get('_route') starts with 'app_admin_reservation' %}active bg-white/10 text-white{% else %}text-white/70 hover:text-white{% endif %} transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Réservations
+        </a>
+        
+        <div class="text-xs uppercase text-white/50 font-semibold px-4 mb-2 mt-6">Support</div>
+        <a href="{{ path('app_admin_reclamation_index') }}" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if app.request.get('_route') starts with 'app_admin_reclamation' %}active bg-white/10 text-white{% else %}text-white/70 hover:text-white{% endif %} transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+            Réclamations
+        </a>
+        
+        <div class="text-xs uppercase text-white/50 font-semibold px-4 mb-2 mt-6">Analytics</div>
+        <a href="{{ path('app_admin_statistics') }}" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if app.request.get('_route') starts with 'app_admin_statistics' %}active bg-white/10 text-white{% else %}text-white/70 hover:text-white{% endif %} transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Statistiques
+        </a>
+        
+        <a href="{{ path('app_admin_avis_index') }}" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if app.request.get('_route') starts with 'app_admin_avis_' %}active bg-white/10 text-white{% else %}text-white/70 hover:text-white{% endif %} transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+            Gestion des Avis
+            {% if stats.avis is defined and stats.avis.total > 0 %}
+                <span class="ml-auto bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">{{ stats.avis.total }}</span>
+            {% endif %}
+        </a>
+        
+        <div class="text-xs uppercase text-white/50 font-semibold px-4 mb-2 mt-6">Config</div>
+        <a href="{{ path('app_admin_category_index') }}" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-lg {% if app.request.get('_route') starts with 'app_admin_category' %}active bg-white/10 text-white{% else %}text-white/70 hover:text-white{% endif %} transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            Catégories
+            {% if stats.categories.total - stats.categories.with_cars > 0 %}
+                <span class="ml-auto bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">{{ stats.categories.total - stats.categories.with_cars }}</span>
+            {% endif %}
+        </a>
+    </nav>
+    
+    <!-- Logout Link -->
+    <div class="mt-auto p-4 border-t border-white/10">
+        <a href="{{ path('app_logout') }}" class="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Déconnexion
+        </a>
+        
+        <div class="mt-8 text-center">
+            <a href="{{ path('app_home') }}" class="text-xs text-white/50 hover:text-white flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Retour au Site
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="min-h-screen container mx-auto px-4 py-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="dashboard-container p-6">
+            <!-- Dashboard Header -->
+            <div class="mb-8 animate-fade-in">
+                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">Admin Dashboard</h1>
+                        <p class="text-gray-500 mt-1">Bienvenue, {{ user.prenom }} {{ user.nom }}</p>
+                        <div class="h-1 w-32 bg-gradient-to-r from-green-500 to-green-600 rounded mt-2"></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="currentDate" class="text-sm text-gray-500"></span>
+                        <div class="flex items-center bg-green-100 text-green-700 rounded-lg px-3 py-1.5 text-sm font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Stats en temps réel
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Update Refresh Button -->
+                <div class="mt-4 flex justify-end">
+                    <button id="refreshStats" class="flex items-center bg-white border border-green-200 hover:bg-green-50 rounded-lg px-3 py-1.5 text-sm text-green-700 transition-all duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span id="lastUpdate">Mis à jour il y a quelques secondes</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Stat Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                <!-- Users Card -->
+                <div class="stat-card rounded-xl p-6 shadow-md animate-slide-up" style="--accent-color: #3b82f6; --accent-color-light: #93c5fd; --accent-color-dark: #1d4ed8; animation-delay: 0.1s;">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold text-gray-700">Utilisateurs</h2>
+                        <div class="p-2 rounded-lg bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ stats.users.total }}</div>
+                    <div class="metric-label">Utilisateurs inscrits</div>
+                    <div class="flex justify-between items-center mt-4 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
+                            <span>{{ stats.users.conducteurs }} conducteurs</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                            <span>{{ stats.users.passagers }} passagers</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rides Card -->
+                <div class="stat-card rounded-xl p-6 shadow-md animate-slide-up" style="--accent-color: #10b981; --accent-color-light: #6ee7b7; --accent-color-dark: #047857; animation-delay: 0.2s;">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold text-gray-700">Annonces</h2>
+                        <div class="p-2 rounded-lg bg-green-100 text-green-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ stats.annonces.total }}</div>
+                    <div class="metric-label">Annonces actives</div>
+                    <div class="flex justify-between items-center mt-4 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                            <span>{{ stats.annonces.today }} aujourd'hui</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-gray-500 mr-1"></span>
+                            <span>{{ stats.annonces.pending }} en attente</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bookings Card -->
+                <div class="stat-card rounded-xl p-6 shadow-md animate-slide-up" style="--accent-color: #8b5cf6; --accent-color-light: #c4b5fd; --accent-color-dark: #6d28d9; animation-delay: 0.3s;">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold text-gray-700">Réservations</h2>
+                        <div class="p-2 rounded-lg bg-purple-100 text-purple-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ stats.reservations.total }}</div>
+                    <div class="metric-label">Réservations</div>
+                    <div class="flex justify-between items-center mt-4 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-purple-500 mr-1"></span>
+                            <span>{{ stats.reservations.confirmed }} confirmées</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>
+                            <span>{{ stats.reservations.pending }} en attente</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews Card -->
+                <div class="stat-card rounded-xl p-6 shadow-md animate-slide-up" style="--accent-color: #f59e0b; --accent-color-light: #fcd34d; --accent-color-dark: #d97706; animation-delay: 0.4s;">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold text-gray-700">Avis</h2>
+                        <div class="p-2 rounded-lg bg-yellow-100 text-yellow-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ stats.avis.total }}</div>
+                    <div class="metric-label">Avis clients</div>
+                    <div class="flex justify-between items-center mt-4 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>
+                            <span>{{ stats.avis.avg_rating|number_format(1) }}/5 moyenne</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                            <span>{{ stats.avis.this_week }} cette semaine</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Complaints Card -->
+                <div class="stat-card rounded-xl p-6 shadow-md animate-slide-up" style="--accent-color: #ef4444; --accent-color-light: #fca5a5; --accent-color-dark: #b91c1c; animation-delay: 0.5s;">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold text-gray-700">Réclamations</h2>
+                        <div class="p-2 rounded-lg bg-red-100 text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-value">{{ stats.reclamations.total|default(stats.reclamations.active + stats.reclamations.pending + stats.reclamations.in_progress + stats.reclamations.resolved + stats.reclamations.rejected) }}</div>
+                    <div class="metric-label">Réclamations actives</div>
+                    <div class="flex justify-between items-center mt-4 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-orange-500 mr-1"></span>
+                            <span>{{ stats.reclamations.pending }} en attente</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
+                            <span>{{ stats.reclamations.in_progress }} en cours</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Categories Card -->
+                <div class="stat-card rounded-xl p-6 shadow-md animate-slide-up" style="--accent-color: #3b82f6; --accent-color-light: #93c5fd; --accent-color-dark: #1d4ed8; animation-delay: 0.6s;">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold text-gray-700">Catégories</h2>
+                        <div class="p-2 rounded-lg bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <a href="{{ path('app_admin_category_index') }}" class="block">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="text-center py-3 border border-blue-100 rounded-lg bg-blue-50">
+                                <div class="metric-value" style="--accent-color: #3b82f6; --accent-color-dark: #1d4ed8;">
+                                    {{ stats.categories.total }}
+                                </div>
+                                <div class="metric-label">Total</div>
+                            </div>
+                            <div class="text-center py-3 border border-blue-100 rounded-lg bg-blue-50">
+                                <div class="metric-value" style="--accent-color: #3b82f6; --accent-color-dark: #1d4ed8;">
+                                    {{ stats.categories.with_cars }}
+                                </div>
+                                <div class="metric-label">Avec voitures</div>
+                            </div>
+                        </div>
+                        <div class="text-center py-2">
+                            <div class="text-sm text-gray-500 mb-2">Gestion complète des catégories de véhicules</div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <span class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                                </svg>
+                                Gérer les catégories
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Reclamations Card -->
+                <div class="stat-card rounded-xl p-6 shadow-md animate-slide-up" style="--accent-color: #ef4444; --accent-color-light: #fca5a5; --accent-color-dark: #b91c1c; animation-delay: 0.7s;">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold text-gray-700">Réclamations</h2>
+                        <div class="p-2 rounded-lg bg-red-100 text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <a href="{{ path('app_admin_reclamation_index') }}" class="block">
+                        <div class="text-center py-3">
+                            <div class="font-bold text-red-600 text-xl">Gérer les réclamations</div>
+                            <div class="text-sm text-gray-500 mt-1">Répondre et traiter les réclamations</div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <span class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                </svg>
+                                Accéder
+                            </span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Réclamations Chart -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden animate-scale-in" style="animation-delay: 0.75s;">
+                    <div class="flex items-center justify-between bg-gradient-to-r from-blue-50 to-sky-50 px-6 py-4">
+                        <h2 class="font-bold text-lg text-gray-800">Statistiques Réclamations</h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="chart-container">
+                            <canvas id="reclamationsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Avis Chart -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden animate-scale-in" style="animation-delay: 0.85s;">
+                    <div class="flex items-center justify-between bg-gradient-to-r from-pink-50 to-rose-50 px-6 py-4">
+                        <h2 class="font-bold text-lg text-gray-800">Statistiques Avis</h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="chart-container">
+                            <canvas id="avisChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-scale-in" style="animation-delay: 0.8s;">
+                <!-- Recent Users -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+                    <div class="flex items-center justify-between bg-gradient-to-r from-primary-ultra-light to-blue-50 px-6 py-4">
+                        <h2 class="font-bold text-lg text-gray-800">Utilisateurs récents</h2>
+                        <a href="{{ path('app_admin_users') }}" class="text-primary hover:text-primary-dark text-sm font-medium">Voir tous →</a>
+                    </div>
+                    <div class="p-4">
+                        {% if stats.recent_users|length > 0 %}
+                            <div class="space-y-3">
+                                {% for user in stats.recent_users %}
+                                    <div class="flex items-center p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                                        <div class="w-10 h-10 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                                            {% if user.imagePath %}
+                                                <img src="{{ asset(user.imagePath) }}" alt="{{ user.prenom }}" class="w-full h-full object-cover">
+                                            {% else %}
+                                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-primary to-blue-500 text-white font-bold uppercase">
+                                                    {{ user.prenom|first }}{{ user.nom|first }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900 truncate">{{ user.prenom }} {{ user.nom }}</p>
+                                            <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
+                                        </div>
+                                        <div class="ml-2">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ user.roleCode == 'CONDUCTEUR' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
+                                                {{ user.roleCode == 'ADMIN' ? 'Admin' : (user.roleCode == 'CONDUCTEUR' ? 'Conducteur' : 'Passager') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 italic text-center py-4">Aucun utilisateur récent à afficher.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Recent Rides -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+                    <div class="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4">
+                        <h2 class="font-bold text-lg text-gray-800">Trajets récents</h2>
+                        <a href="#" class="text-green-600 hover:text-green-800 text-sm font-medium">Voir tous →</a>
+                    </div>
+                    <div class="p-4">
+                        {% if stats.recent_rides|length > 0 %}
+                            <div class="space-y-3">
+                                {% for ride in stats.recent_rides %}
+                                    <div class="flex items-center p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                                        <div class="p-2 rounded-lg bg-green-100 text-green-600 mr-3 flex-shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900 truncate">{% if ride.trajet %}{{ ride.trajet.departurePoint }} → {{ ride.trajet.arrivalPoint }}{% else %}Trajet non disponible{% endif %}</p>
+                                            <p class="text-xs text-gray-500 truncate">{{ ride.departureDate|date('d/m/Y H:i') }}</p>
+                                        </div>
+                                        <div class="ml-2">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ ride.availableSeats > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                {{ ride.availableSeats }} place{% if ride.availableSeats != 1 %}s{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 italic text-center py-4">Aucun trajet récent à afficher.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Categories Section -->
+            <div class="mb-8 animate-scale-in" style="animation-delay: 0.85s;">
+                <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+                    <div class="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
+                        <h2 class="font-bold text-lg text-gray-800">Catégories de Véhicules</h2>
+                        <a href="{{ path('app_admin_category_index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Voir toutes →</a>
+                    </div>
+                    <div class="p-4">
+                        {% if stats.categories.recent|length > 0 %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {% for category in stats.categories.recent %}
+                                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div class="flex items-center mb-2">
+                                            <div class="p-2 rounded-lg bg-blue-100 text-blue-600 mr-3">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                </svg>
+                                            </div>
+                                            <h3 class="font-semibold">{{ category.nom }}</h3>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-2 line-clamp-2">{{ category.description ?: 'Aucune description' }}</p>
+                                        <div class="flex justify-between items-center mt-3">
+                                            <span class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">{{ category.cars|length }} voiture(s)</span>
+                                            <a href="{{ path('app_admin_category_show', {'id': category.id}) }}" class="text-xs text-gray-500 hover:text-blue-600">Détails →</a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="mt-4 text-center">
+                                <a href="{{ path('app_admin_category_new') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Créer une nouvelle catégorie
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                                <p class="text-gray-500 mb-4">Aucune catégorie disponible</p>
+                                <a href="{{ path('app_admin_category_new') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Créer la première catégorie
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Links and System Alerts -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-scale-in" style="animation-delay: 0.9s;">
+                <!-- Quick Links -->
+                <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                    <h2 class="text-lg font-bold mb-4 text-gray-800">Accès rapides</h2>
+                    <div class="space-y-2">
+                        <a href="{{ path('app_admin_users') }}" class="flex items-center p-3 rounded-lg hover:bg-primary-ultra-light text-gray-700 hover:text-primary transition-colors">
+                            <div class="p-2 rounded-lg bg-primary-ultra-light text-primary mr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Gestion des utilisateurs</span>
+                        </a>
+                        <a href="{{ path('app_admin_reclamation_index') }}" class="flex items-center p-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors">
+                            <div class="p-2 rounded-lg bg-red-100 text-red-600 mr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Gestion des réclamations</span>
+                        </a>
+                        <a href="{{ path('app_admin_annonces') }}" class="flex items-center p-3 rounded-lg hover:bg-green-50 text-gray-700 hover:text-green-600 transition-colors">
+                            <div class="p-2 rounded-lg bg-green-100 text-green-600 mr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Liste des Annonces</span>
+                        </a>
+                        <a href="{{ path('app_admin_trajets') }}" class="flex items-center p-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-600 transition-colors">
+                            <div class="p-2 rounded-lg bg-purple-100 text-purple-600 mr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Liste des Trajets</span>
+                        </a>
+                        <a href="{{ path('app_admin_reservations') }}" class="flex items-center p-3 rounded-lg hover:bg-purple-50 text-gray-700 hover:text-purple-600 transition-colors">
+                            <div class="p-2 rounded-lg bg-purple-100 text-purple-600 mr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Liste des Réservations</span>
+                        </a>
+                        <a href="{{ path('app_admin_category_index') }}" class="flex items-center p-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors">
+                            <div class="p-2 rounded-lg bg-blue-100 text-blue-600 mr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                            </div>
+                            <span class="font-medium">Gestion des Catégories</span>
+                            {% if stats.categories.total - stats.categories.with_cars > 0 %}
+                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {{ stats.categories.total - stats.categories.with_cars }} sans voiture
+                                </span>
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- System Alerts -->
+                <div class="md:col-span-2 bg-white rounded-xl p-6 shadow-md border border-gray-100">
+                    <h2 class="text-lg font-bold mb-4 text-gray-800">Alertes système</h2>
+                    {% if stats.alerts|length > 0 %}
+                        <div class="space-y-3">
+                            {% for alert in stats.alerts %}
+                                <div class="flex p-3 rounded-lg bg-{{ alert.color }}-50 border border-{{ alert.color }}-200">
+                                    <div class="p-2 rounded-full bg-{{ alert.color }}-100 text-{{ alert.color }}-600 mr-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ alert.icon }}" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-medium text-{{ alert.color }}-800">{{ alert.title }}</h4>
+                                        <p class="text-xs text-{{ alert.color }}-600 mt-1">{{ alert.message }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="flex items-center p-3 rounded-lg bg-green-50 border border-green-200">
+                            <div class="p-2 rounded-full bg-green-100 text-green-600 mr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-green-800">Système opérationnel</h4>
+                                <p class="text-xs text-green-600 mt-1">Tous les systèmes fonctionnent normalement.</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Add JavaScript for the menu functionality #}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuToggle = document.getElementById('menuToggle');
+        const closeMenu = document.getElementById('closeMenu');
+        const offcanvasMenu = document.querySelector('.offcanvas-menu');
+        const offcanvasBackdrop = document.querySelector('.offcanvas-backdrop');
+        const body = document.body;
+
+        menuToggle.addEventListener('click', function() {
+            offcanvasMenu.classList.add('active');
+            offcanvasBackdrop.classList.add('active');
+            body.classList.add('menu-open');
+        });
+
+        function closeOffcanvasMenu() {
+            offcanvasMenu.classList.remove('active');
+            offcanvasBackdrop.classList.remove('active');
+            body.classList.remove('menu-open');
+        }
+
+        closeMenu.addEventListener('click', closeOffcanvasMenu);
+        offcanvasBackdrop.addEventListener('click', closeOffcanvasMenu);
+        
+        // Set current date
+        const currentDateElement = document.getElementById('currentDate');
+        const now = new Date();
+        currentDateElement.textContent = now.toLocaleDateString('fr-FR', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        // Refresh button functionality
+        document.getElementById('refreshStats').addEventListener('click', function() {
+            this.classList.add('animate-pulse');
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
+        });
+        
+        // Initialize Charts
+        initReclamationsChart();
+        initAvisChart();
+    });
+    
+    function initReclamationsChart() {
+        const ctx = document.getElementById('reclamationsChart').getContext('2d');
+        
+        // Get monthly data from stats
+        let reclamationsData = [
+            {% for month, count in stats.reclamations.monthly %}
+                {{ count }},
+            {% endfor %}
+        ];
+        
+        const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+        
+        // Create gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.2)');
+        
+        // Create chart
+        const reclamationsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Réclamations',
+                        data: reclamationsData,
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        barPercentage: 0.6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    y: {
+                        duration: 2000,
+                        from: 500,
+                        delay: function(context) {
+                            return context.dataIndex * 100;
+                        },
+                        easing: 'easeOutElastic'
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#6B7280',
+                        bodyColor: '#111827',
+                        titleFont: {
+                            size: 13,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        borderColor: 'rgba(229, 231, 235, 1)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Réclamations: ' + context.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#6B7280',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(243, 244, 246, 0.6)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6B7280',
+                            padding: 10,
+                            font: {
+                                size: 11
+                            },
+                            stepSize: 2,
+                            callback: function(value) {
+                                if (value % 1 === 0) {
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function initAvisChart() {
+        const ctx = document.getElementById('avisChart').getContext('2d');
+        
+        // Get monthly data from stats
+        let avisData = [
+            {% for month, count in stats.avis.monthly %}
+                {{ count }},
+            {% endfor %}
+        ];
+        
+        const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+        
+        // Create gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(236, 72, 153, 0.8)');
+        gradient.addColorStop(1, 'rgba(236, 72, 153, 0.2)');
+        
+        // Create chart
+        const avisChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Avis',
+                        data: avisData,
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(236, 72, 153, 1)',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        barPercentage: 0.6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    y: {
+                        duration: 2000,
+                        from: 500,
+                        delay: function(context) {
+                            return context.dataIndex * 100;
+                        },
+                        easing: 'easeOutElastic'
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#6B7280',
+                        bodyColor: '#111827',
+                        titleFont: {
+                            size: 13,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        borderColor: 'rgba(229, 231, 235, 1)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Avis: ' + context.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#6B7280',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(243, 244, 246, 0.6)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6B7280',
+                            padding: 10,
+                            font: {
+                                size: 11
+                            },
+                            stepSize: 5,
+                            callback: function(value) {
+                                if (value % 1 === 0) {
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %} 

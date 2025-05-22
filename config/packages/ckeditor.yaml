@@ -1,0 +1,17 @@
+# CKEditor Configuration
+# https://ckeditor.com/docs/ckeditor5/latest/index.html
+
+parameters:
+    ckeditor_configs:
+        default:
+            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+            placeholder: 'Entrez votre texte ici...'
+            min_height: 200
+        full:
+            toolbar: ['heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|', 'insertTable', '|', 'undo', 'redo']
+            placeholder: 'Entrez votre texte ici...'
+            min_height: 300
+        basic:
+            toolbar: ['bold', 'italic', 'link', '|', 'undo', 'redo']
+            placeholder: 'Entrez votre texte ici...'
+            min_height: 150 

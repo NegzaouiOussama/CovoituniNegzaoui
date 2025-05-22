@@ -1,0 +1,40 @@
+{# templates/pagination/custom_pagination.html.twig #}
+<div class="pagination-container">
+    <div class="mb-3 text-sm text-gray-500">
+        <span class="font-medium">{{ totalCount }}</span> reclamation(s) au total - Page <span class="font-medium">{{ current }}</span> sur <span class="font-medium">{{ pageCount }}</span>
+    </div>
+    
+    <div class="pagination flex rounded-lg font-medium">
+        {% if first is defined and current != first %}
+            <a href="{{ path(route, query|merge({(pageParameterName): first})) }}" class="px-4 py-2 bg-gray-50 text-blue-600 border border-gray-200 rounded-l-lg hover:bg-blue-100">&lt;&lt;</a>
+        {% else %}
+            <span class="px-4 py-2 bg-gray-100 text-gray-400 border border-gray-200 rounded-l-lg cursor-not-allowed">&lt;&lt;</span>
+        {% endif %}
+
+        {% if previous is defined %}
+            <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}" class="px-4 py-2 bg-gray-50 text-blue-600 border-t border-b border-gray-200 hover:bg-blue-100">&lt;</a>
+        {% else %}
+            <span class="px-4 py-2 bg-gray-100 text-gray-400 border-t border-b border-gray-200 cursor-not-allowed">&lt;</span>
+        {% endif %}
+
+        {% for page in pagesInRange %}
+            {% if page == current %}
+                <span class="px-4 py-2 bg-blue-600 text-white border border-blue-600">{{ page }}</span>
+            {% else %}
+                <a href="{{ path(route, query|merge({(pageParameterName): page})) }}" class="px-4 py-2 bg-gray-50 text-blue-600 border-t border-b border-gray-200 hover:bg-blue-100">{{ page }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if next is defined %}
+            <a href="{{ path(route, query|merge({(pageParameterName): next})) }}" class="px-4 py-2 bg-gray-50 text-blue-600 border-t border-b border-gray-200 hover:bg-blue-100">&gt;</a>
+        {% else %}
+            <span class="px-4 py-2 bg-gray-100 text-gray-400 border-t border-b border-gray-200 cursor-not-allowed">&gt;</span>
+        {% endif %}
+
+        {% if last is defined and current != last %}
+            <a href="{{ path(route, query|merge({(pageParameterName): last})) }}" class="px-4 py-2 bg-gray-50 text-blue-600 border border-gray-200 rounded-r-lg hover:bg-blue-100">&gt;&gt;</a>
+        {% else %}
+            <span class="px-4 py-2 bg-gray-100 text-gray-400 border border-gray-200 rounded-r-lg cursor-not-allowed">&gt;&gt;</span>
+        {% endif %}
+    </div>
+</div> 

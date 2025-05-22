@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Réclamation #{{ reclamation.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        h1 {
+            color: #3366cc;
+            font-size: 24px;
+        }
+        .details {
+            margin-bottom: 30px;
+        }
+        .details-row {
+            margin-bottom: 10px;
+        }
+        .label {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+        }
+        .content {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Réclamation #{{ reclamation.id }}</h1>
+        </div>
+        
+        <div class="details">
+            <div class="details-row">
+                <span class="label">Statut:</span>
+                {% if reclamation.state == 'pending' %}
+                    En attente
+                {% elseif reclamation.state == 'resolved' %}
+                    Résolu
+                {% elseif reclamation.state == 'rejected' %}
+                    Rejeté
+                {% else %}
+                    {{ reclamation.state }}
+                {% endif %}
+            </div>
+            
+            <div class="details-row">
+                <span class="label">Date de création:</span>
+                {{ reclamation.date|date('d/m/Y H:i') }}
+            </div>
+            
+            <div class="details-row">
+                <span class="label">Utilisateur:</span>
+                {{ reclamation.user.email }}
+            </div>
+            
+            <div class="details-row">
+                <span class="label">Sujet:</span>
+                {{ reclamation.subject }}
+            </div>
+        </div>
+        
+        <div class="content">
+            <h3>Description de la réclamation</h3>
+            <p>{{ reclamation.description|nl2br }}</p>
+        </div>
+        
+        {% if reclamation.reponses is not empty %}
+        <div class="content">
+            <h3>Réponses</h3>
+            {% for reponse in reclamation.reponses %}
+            <div style="border-bottom: 1px solid #ddd; margin-bottom: 10px; padding-bottom: 10px;">
+                <p><strong>{{ reponse.adminUsername }}</strong> - {{ reponse.date|date('d/m/Y H:i') }}</p>
+                <p>{{ reponse.content|nl2br }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="footer">
+            <p>Document généré le {{ 'now'|date('d/m/Y H:i') }}</p>
+            <p>CovoitUni - Système de gestion des réclamations</p>
+        </div>
+    </div>
+</body>
+</html> 

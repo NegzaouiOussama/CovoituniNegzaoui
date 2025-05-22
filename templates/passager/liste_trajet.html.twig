@@ -1,0 +1,134 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Liste des Trajets - Passager{% endblock %}
+
+{% block content %}
+    <div class="w-full">
+        <div class="glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-8 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2 text-gray-800">Liste des trajets disponibles</h1>
+                    <p class="text-gray-600">Consultez les trajets disponibles et trouvez votre prochain covoiturage.</p>
+                </div>
+            </div>
+
+            {% for message in app.flashes('success') %}
+                <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+                    {{ message }}
+                </div>
+            {% endfor %}
+            
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                    <div class="flex items-center">
+                        <div class="relative">
+                            <input type="text" placeholder="Rechercher..." class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <select class="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <option value="">Trier par</option>
+                            <option value="recent">Plus récents</option>
+                            <option value="ancien">Plus anciens</option>
+                            <option value="prix-asc">Prix croissant</option>
+                            <option value="prix-desc">Prix décroissant</option>
+                        </select>
+                    </div>
+                </div>
+                
+                {% if trajets is empty %}
+                    <div class="bg-gray-50 rounded-xl p-8 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="mt-4 text-xl font-medium text-gray-900">Aucun trajet trouvé</h3>
+                        <p class="mt-2 text-gray-600">Aucun trajet n'est disponible pour le moment.</p>
+                        <a href="{{ path('app_passager_ajouter_trajet') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition duration-300">
+                            <i class="fas fa-plus mr-2"></i>
+                            Créer un nouveau trajet
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for trajet in trajets %}
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div class="p-6">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="font-bold text-xl text-gray-900">{{ trajet.titre|default(trajet.departurePoint ~ ' → ' ~ trajet.arrivalPoint) }}</h3>
+                                            <p class="text-gray-600">Créé le {{ trajet.createdAt|date("d/m/Y à H:i") }}</p>
+                                        </div>
+                                        <div class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                                            Disponible
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 space-y-2">
+                                        <div class="flex items-start">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            <div>
+                                                <span class="text-gray-700">{{ trajet.getDeparturePoint() }}</span>
+                                                <div class="flex items-center">
+                                                    <div class="h-4 border-l-2 border-dotted border-gray-400 ml-1.5"></div>
+                                                </div>
+                                                <span class="text-gray-700">{{ trajet.getArrivalPoint() }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span class="text-gray-700 font-medium">{{ trajet.price }}€</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 flex justify-end">
+                                        <a href="{{ path('app_passager_liste_annonce') }}" 
+                                           class="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-lg hover:bg-green-200 transition-colors duration-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            Voir annonces
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div class="mt-4 flex justify-center">
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Précédent</span>
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                        <a href="#" aria-current="page" class="z-10 bg-primary-ultra-light border-primary text-primary relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            1
+                        </a>
+                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            2
+                        </a>
+                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            3
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Suivant</span>
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

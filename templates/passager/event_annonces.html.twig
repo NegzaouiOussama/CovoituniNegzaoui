@@ -1,0 +1,120 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Covoiturages pour {{ event.nom }} - Passager{% endblock %}
+
+{% block content %}
+    <div class="w-full">
+        <div class="glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-8 mb-8">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2 text-gray-800">Covoiturages pour {{ event.nom }}</h1>
+                    <div class="text-gray-600 space-y-1">
+                        <p>Type: {{ event.typeEvent.nom }}</p>
+                        <p>Date: {{ event.dateEvent|date('d/m/Y') }} à {{ event.heureEvent|date('H:i') }}</p>
+                        <p>Lieu: {{ event.lieu }}</p>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{{ path('app_passager_event_show', {'id': event.idEvent}) }}" class="inline-flex items-center px-4 py-2 bg-gray-50 text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-100 transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Voir l'événement
+                    </a>
+                    <a href="{{ path('app_passager_events') }}" class="inline-flex items-center px-4 py-2 bg-gray-50 text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-100 transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Retour aux événements
+                    </a>
+                </div>
+            </div>
+
+            {% for message in app.flashes('success') %}
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
+            
+            {% for message in app.flashes('error') %}
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
+
+            {% if annonces|length > 0 %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for annonce in annonces %}
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                            <div class="p-6">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="font-bold text-xl text-gray-900">{{ annonce.titre }}</h3>
+                                        <p class="text-gray-600">
+                                            {{ annonce.departurePoint }} → {{ annonce.arrivalPoint }}
+                                        </p>
+                                    </div>
+                                    <span class="px-3 py-1 {% if annonce.status == 'ouvert' %}bg-green-100 text-green-800{% elseif annonce.status == 'plein' %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %} text-xs font-semibold rounded-full">
+                                        {{ annonce.status }}
+                                    </span>
+                                </div>
+                                
+                                <div class="mt-4 space-y-2">
+                                    <div class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span class="text-gray-700">{{ annonce.departureDate|date('d/m/Y à H:i') }}</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <span class="text-gray-700">{{ annonce.availableSeats }} place(s) disponible(s)</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span class="text-gray-700">{{ annonce.prix|number_format(2, '.', ' ') }} DT par place</span>
+                                    </div>
+                                </div>
+                                
+                                {% if annonce.description %}
+                                    <div class="mt-4">
+                                        <p class="text-sm text-gray-600">{{ annonce.description|length > 100 ? annonce.description|slice(0, 100) ~ '...' : annonce.description }}</p>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="mt-4 flex justify-end">
+                                    {% if annonce.status == 'ouvert' and annonce.availableSeats > 0 %}
+                                        <a href="{{ path('app_passager_event_annonce_reserver', {'id': annonce.id}) }}" class="inline-flex items-center px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors duration-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            Réserver
+                                        </a>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-500 text-sm font-medium rounded-lg">
+                                            Non disponible
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-gray-50 rounded-xl p-8 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 class="mt-4 text-xl font-medium text-gray-900">Aucun covoiturage trouvé</h3>
+                    <p class="mt-2 text-gray-600">Il n'y a actuellement aucun covoiturage disponible pour cet événement.</p>
+                    <p class="mt-2 text-gray-600">Revenez plus tard pour voir si de nouvelles offres sont disponibles.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %} 

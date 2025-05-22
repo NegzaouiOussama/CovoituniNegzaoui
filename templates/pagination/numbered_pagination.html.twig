@@ -1,0 +1,30 @@
+{% if pageCount > 1 %}
+    <div class="flex items-center justify-center py-8">
+        {% if previous is defined %}
+            <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}"
+               class="flex items-center justify-center w-14 h-14 mx-2 text-xl font-medium text-gray-800 border border-gray-200 bg-white rounded-md shadow-sm hover:bg-gray-100 transition-colors">
+                <span>&lt;</span>
+            </a>
+        {% endif %}
+
+        {% for page in pagesInRange %}
+            {% if page != current %}
+                <a href="{{ path(route, query|merge({(pageParameterName): page})) }}" 
+                   class="flex items-center justify-center w-14 h-14 mx-2 text-xl font-medium text-gray-800 border border-gray-200 bg-white rounded-md shadow-sm hover:bg-gray-100 transition-colors">
+                    {{ page }}
+                </a>
+            {% else %}
+                <span class="flex items-center justify-center w-14 h-14 mx-2 text-xl font-medium text-white bg-orange-500 rounded-md shadow-sm">
+                    {{ page }}
+                </span>
+            {% endif %}
+        {% endfor %}
+
+        {% if next is defined %}
+            <a href="{{ path(route, query|merge({(pageParameterName): next})) }}"
+               class="flex items-center justify-center w-14 h-14 mx-2 text-xl font-medium text-gray-800 border border-gray-200 bg-white rounded-md shadow-sm hover:bg-gray-100 transition-colors">
+                <span>&gt;</span>
+            </a>
+        {% endif %}
+    </div>
+{% endif %} 

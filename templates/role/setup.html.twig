@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Roles Setup{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto">
+            <h1 class="text-3xl font-bold mb-8 text-center">Roles Setup</h1>
+            
+            <div class="bg-white shadow-md rounded-lg p-8">
+                {% if added_roles|length > 0 %}
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold mb-2 text-green-600">Roles Added Successfully:</h2>
+                        <ul class="list-disc pl-5">
+                            {% for role in added_roles %}
+                                <li>{{ role }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                {% if existing_roles|length > 0 %}
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold mb-2 text-blue-600">Roles Already Exist:</h2>
+                        <ul class="list-disc pl-5">
+                            {% for role in existing_roles %}
+                                <li>{{ role }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                {% if added_roles|length == 0 and existing_roles|length == 0 %}
+                    <div class="text-center text-gray-500">
+                        <p>No roles were processed.</p>
+                    </div>
+                {% endif %}
+                
+                <div class="mt-6 text-center">
+                    <a href="{{ path('app_login') }}" class="text-primary hover:text-primary-dark">Back to Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

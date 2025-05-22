@@ -1,0 +1,236 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register - CovoitUni{% endblock %}
+
+{% block body %}
+    <div class="relative min-h-[80vh] flex items-center justify-center overflow-hidden py-12">
+        {# Background design elements #}
+        <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white to-primary-ultra-light/20 -z-10"></div>
+        <div class="floating-blob animation-delay-2000"></div>
+        <div class="floating-blob animation-delay-4000"></div>
+        <div class="floating-blob"></div>
+        
+        <div class="container mx-auto px-4">
+            <div class="max-w-2xl mx-auto glass-card relative z-10 backdrop-blur-md bg-white/70 rounded-2xl shadow-xl p-10 border border-white/20 transform transition-all duration-500">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary-light/10 rounded-full filter blur-3xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/10 rounded-full filter blur-3xl"></div>
+                
+                <h1 class="hero-title text-3xl font-extrabold mb-2 text-center bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">Join CovoitUni</h1>
+                
+                <div class="mb-8">
+                    <p class="text-center text-gray-600">Create an account to find and share rides with other students</p>
+                </div>
+                
+                {% for flashError in app.flashes('error') %}
+                    <div class="bg-red-100/80 backdrop-blur-sm border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6" role="alert">
+                        {{ flashError }}
+                    </div>
+                {% endfor %}
+                
+                {% for flashSuccess in app.flashes('success') %}
+                    <div class="bg-green-100/80 backdrop-blur-sm border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-6" role="alert">
+                        {{ flashSuccess }}
+                    </div>
+                {% endfor %}
+                
+                <form method="post">
+                    <div class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary z-10">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="filter: none;">
+                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <input type="text" id="nom" name="nom" placeholder="Last Name" class="bg-white/80 w-full p-4 pl-10 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all duration-300" required>
+                            </div>
+                            
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary z-10">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="filter: none;">
+                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <input type="text" id="prenom" name="prenom" placeholder="First Name" class="bg-white/80 w-full p-4 pl-10 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all duration-300" required>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary z-10">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="filter: none;">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <input type="text" id="username" name="username" placeholder="Username" class="bg-white/80 w-full p-4 pl-10 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all duration-300" required>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary z-10">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="filter: none;">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                </svg>
+                            </div>
+                            <input type="email" id="email" name="email" placeholder="Email address" class="bg-white/80 w-full p-4 pl-10 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all duration-300" required>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary z-10">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="filter: none;">
+                                    <path fill-rule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <input type="tel" id="tel" name="tel" placeholder="Phone number" class="bg-white/80 w-full p-4 pl-10 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all duration-300" required>
+                        </div>
+                        
+                        <div class="p-5 bg-white/80 rounded-xl border border-gray-200">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">I want to register as:</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label for="role_passager" class="flex-1 group">
+                                    <input type="radio" id="role_passager" name="role_code" value="PASSAGER" class="sr-only" checked>
+                                    <div class="cursor-pointer p-4 rounded-xl border-2 border-gray-200 group-hover:border-primary text-center flex flex-col items-center transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1">
+                                        <div class="w-12 h-12 rounded-full flex items-center justify-center bg-primary-ultra-light mb-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="filter: none;">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <span class="font-medium">Passenger</span>
+                                        <span class="text-xs text-gray-500 mt-1">Find available rides</span>
+                                    </div>
+                                </label>
+                                
+                                <label for="role_conducteur" class="flex-1 group">
+                                    <input type="radio" id="role_conducteur" name="role_code" value="CONDUCTEUR" class="sr-only">
+                                    <div class="cursor-pointer p-4 rounded-xl border-2 border-gray-200 group-hover:border-primary text-center flex flex-col items-center transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1">
+                                        <div class="w-12 h-12 rounded-full flex items-center justify-center bg-primary-ultra-light mb-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="filter: none;">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                            </svg>
+                                        </div>
+                                        <span class="font-medium">Driver</span>
+                                        <span class="text-xs text-gray-500 mt-1">Offer rides to others</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary z-10">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="filter: none;">
+                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <input type="password" id="password" name="password" placeholder="Password" class="bg-white/80 w-full p-4 pl-10 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all duration-300" required>
+                            </div>
+                            
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary z-10">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" style="filter: none;">
+                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm password" class="bg-white/80 w-full p-4 pl-10 border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-sm transition-all duration-300" required>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button type="submit" class="w-full action-btn text-white font-medium p-4 rounded-xl bg-gradient-to-r from-primary to-primary-dark shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
+                                Create Account
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="mt-8 text-center">
+                    <p class="text-gray-600">Already have an account? <a href="{{ path('app_login') }}" class="text-primary hover:text-primary-dark font-medium transition-colors duration-300 border-flow">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Add interactivity to role selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const passengerRadio = document.getElementById('role_passager');
+            const driverRadio = document.getElementById('role_conducteur');
+            const passengerCard = passengerRadio.parentElement.querySelector('div');
+            const driverCard = driverRadio.parentElement.querySelector('div');
+            
+            function updateCardStyles() {
+                if (passengerRadio.checked) {
+                    passengerCard.classList.add('border-primary', 'bg-primary-ultra-light/50');
+                    driverCard.classList.remove('border-primary', 'bg-primary-ultra-light/50');
+                } else {
+                    driverCard.classList.add('border-primary', 'bg-primary-ultra-light/50');
+                    passengerCard.classList.remove('border-primary', 'bg-primary-ultra-light/50');
+                }
+            }
+            
+            // Initial state
+            updateCardStyles();
+            
+            // Event listeners
+            passengerRadio.addEventListener('change', updateCardStyles);
+            driverRadio.addEventListener('change', updateCardStyles);
+            
+            // Form validation
+            const form = document.querySelector('form');
+            const inputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"]');
+            
+            // Create validation message element for each input
+            inputs.forEach(input => {
+                const errorDiv = document.createElement('div');
+                errorDiv.classList.add('text-red-500', 'text-sm', 'mt-1', 'hidden');
+                errorDiv.innerText = 'Ce champ ne peut pas être vide';
+                input.parentNode.appendChild(errorDiv);
+                
+                // Check on blur
+                input.addEventListener('blur', function() {
+                    validateField(this);
+                });
+                
+                // Reset error on input
+                input.addEventListener('input', function() {
+                    const errorMessage = this.parentNode.querySelector('.text-red-500');
+                    errorMessage.classList.add('hidden');
+                    this.classList.remove('border-red-500');
+                });
+            });
+            
+            function validateField(field) {
+                const errorMessage = field.parentNode.querySelector('.text-red-500');
+                if (!field.value.trim()) {
+                    errorMessage.classList.remove('hidden');
+                    field.classList.add('border-red-500');
+                    return false;
+                } else {
+                    errorMessage.classList.add('hidden');
+                    field.classList.remove('border-red-500');
+                    return true;
+                }
+            }
+            
+            // Validate all fields on submit
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                inputs.forEach(input => {
+                    if (!validateField(input)) {
+                        isValid = false;
+                    }
+                });
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    // Scroll to the first error
+                    const firstError = form.querySelector('.border-red-500');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstError.focus();
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %} 

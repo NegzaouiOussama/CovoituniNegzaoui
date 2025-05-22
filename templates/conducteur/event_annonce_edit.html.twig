@@ -1,0 +1,118 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Modifier l'annonce - Conducteur{% endblock %}
+
+{% block content %}
+    <div class="w-full">
+        <div class="glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-8 mb-8">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2 text-gray-800">Modifier l'annonce</h1>
+                    <div class="text-gray-600 space-y-1">
+                        <p>Type: {{ annonce.event.typeEvent.nom }}</p>
+                        <p>Date: {{ annonce.event.dateEvent|date('d/m/Y') }} à {{ annonce.event.heureEvent|date('H:i') }}</p>
+                        <p>Lieu: {{ annonce.event.lieu }}</p>
+                    </div>
+                </div>
+                <a href="{{ path('app_conducteur_event_annonces', {'id': annonce.event.idEvent}) }}" class="inline-flex items-center px-4 py-2 bg-gray-50 text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-100 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Retour aux annonces
+                </a>
+            </div>
+
+            {% for message in app.flashes('success') %}
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
+            
+            {% for message in app.flashes('error') %}
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
+
+            <form action="{{ path('app_conducteur_event_annonce_edit', {'id': annonce.id}) }}" method="post" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="titre" class="block text-sm font-medium text-gray-700 mb-1">Titre de l'annonce</label>
+                        <input type="text" id="titre" name="titre" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300"
+                               value="{{ annonce.titre }}">
+                    </div>
+                    
+                    <div>
+                        <label for="voiture" class="block text-sm font-medium text-gray-700 mb-1">Voiture</label>
+                        <select id="voiture" name="voiture" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300">
+                            <option value="">Sélectionnez une voiture</option>
+                            {% for voiture in voitures %}
+                                <option value="{{ voiture.id }}" {% if voiture.id == annonce.carId %}selected{% endif %}>{{ voiture.marque }} {{ voiture.modele }} ({{ voiture.plaqueImatriculation }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="departurePoint" class="block text-sm font-medium text-gray-700 mb-1">Point de départ</label>
+                        <input type="text" id="departurePoint" name="departurePoint" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300"
+                               value="{{ annonce.departurePoint }}">
+                    </div>
+                    
+                    <div>
+                        <label for="arrivalPoint" class="block text-sm font-medium text-gray-700 mb-1">Point d'arrivée</label>
+                        <input type="text" id="arrivalPoint" name="arrivalPoint" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300"
+                               value="{{ annonce.arrivalPoint }}">
+                    </div>
+                    
+                    <div>
+                        <label for="departureDate" class="block text-sm font-medium text-gray-700 mb-1">Date de départ</label>
+                        <input type="date" id="departureDate" name="departureDate" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300"
+                               min="{{ 'now'|date('Y-m-d') }}" value="{{ annonce.departureDate|date('Y-m-d') }}">
+                    </div>
+                    
+                    <div>
+                        <label for="departureTime" class="block text-sm font-medium text-gray-700 mb-1">Heure de départ</label>
+                        <input type="time" id="departureTime" name="departureTime" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300"
+                               value="{{ annonce.departureDate|date('H:i') }}">
+                    </div>
+                    
+                    <div>
+                        <label for="availableSeats" class="block text-sm font-medium text-gray-700 mb-1">Nombre de places disponibles</label>
+                        <input type="number" id="availableSeats" name="availableSeats" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300"
+                               min="1" max="10" value="{{ annonce.availableSeats }}">
+                    </div>
+
+                    <div>
+                        <label for="prix" class="block text-sm font-medium text-gray-700 mb-1">Prix par place (DT)</label>
+                        <input type="number" id="prix" name="prix" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300"
+                               min="0" step="0.01" value="{{ annonce.prix }}">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description de l'annonce</label>
+                    <textarea id="description" name="description" rows="4"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary transition-colors duration-300">{{ annonce.description }}</textarea>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" 
+                            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 text-sm font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Enregistrer les modifications
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %} 

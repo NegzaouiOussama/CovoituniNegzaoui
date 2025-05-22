@@ -1,0 +1,48 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    app.locales: ['fr', 'en']
+    app.path.product_images: /uploads/images/products
+    app.path.trajet_images: /uploads/images/trajets
+    app.path.user_images: /uploads/images/users
+    app.path.voiture_images: /uploads/images/voitures
+    # Define CKEditor configurations directly here
+    ckeditor_configs:
+        default:
+            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+            height: 300
+            placeholder: "Tapez votre contenu ici..."
+        minimal:
+            toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+            height: 200
+            placeholder: "Texte court..."
+        full:
+            toolbar: [['heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'link', '|', 'bulletedList', 'numberedList', '|', 'outdent', 'indent', '|', 'blockQuote'], ['insertTable', 'horizontalLine', '|', 'alignment', '|', 'fontColor', 'fontBackgroundColor', '|', 'undo', 'redo']]
+            height: 400
+            placeholder: "Contenu détaillé..."
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # Explicitly register the form extension
+    App\Form\Extension\TextareaToCKEditorExtension:
+        tags:
+            - { name: form.type_extension, extended_type: Symfony\Component\Form\Extension\Core\Type\TextareaType }
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones

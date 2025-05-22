@@ -1,0 +1,194 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de la Réservation{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-pending {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: rgb(245, 158, 11);
+        }
+        .badge-accepted {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: rgb(16, 185, 129);
+        }
+        .badge-rejected {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: rgb(239, 68, 68);
+        }
+        .badge-completed {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: rgb(37, 99, 235);
+        }
+        .badge-canceled {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: rgb(107, 114, 128);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-blue {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: rgb(37, 99, 235);
+            border: none;
+        }
+        .btn-blue:hover {
+            background-color: rgba(37, 99, 235, 0.2);
+        }
+        .btn-yellow {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: rgb(245, 158, 11);
+            border: none;
+        }
+        .btn-yellow:hover {
+            background-color: rgba(245, 158, 11, 0.2);
+        }
+        .btn-red {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: rgb(239, 68, 68);
+            border: none;
+        }
+        .btn-red:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800">Détails de la Réservation #{{ reservation.id }}</h1>
+            <div class="flex space-x-2">
+                <a href="{{ path('app_admin_reservations') }}" class="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Retour à la liste
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Réservation #{{ reservation.id }}</h2>
+                <div class="mt-2 flex items-center text-sm text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Réservée le {{ reservation.dateReservation|date('d/m/Y H:i') }}
+                </div>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Informations sur la réservation</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="font-medium">Statut:</span> 
+                            <span class="badge {% if reservation.status == 'PENDING' %}badge-pending{% elseif reservation.status == 'ACCEPTED' %}badge-accepted{% elseif reservation.status == 'REJECTED' %}badge-rejected{% elseif reservation.status == 'COMPLETED' %}badge-completed{% else %}badge-canceled{% endif %}">
+                                {% if reservation.status == 'PENDING' %}
+                                    En attente
+                                {% elseif reservation.status == 'ACCEPTED' %}
+                                    Acceptée
+                                {% elseif reservation.status == 'REJECTED' %}
+                                    Refusée
+                                {% elseif reservation.status == 'COMPLETED' %}
+                                    Terminée
+                                {% elseif reservation.status == 'CANCELLED_BY_PASSENGER' or reservation.status == 'CANCELLED_BY_DRIVER' %}
+                                    Annulée
+                                {% else %}
+                                    {{ reservation.status }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="font-medium">Type:</span> 
+                            {% if reservation.type == 'TRAJET' %}
+                                Annonce standard
+                            {% elseif reservation.type == 'EVENT' %}
+                                Annonce événement
+                            {% else %}
+                                {{ reservation.type }}
+                            {% endif %}
+                        </div>
+                        {% if reservation.type == 'TRAJET' and reservation.annonce %}
+                        <div>
+                            <span class="font-medium">Annonce associée:</span> 
+                            <p>ID: {{ reservation.annonce.id }}</p>
+                            {% if reservation.annonce.titre is defined %}
+                            <p>Titre: {{ reservation.annonce.titre }}</p>
+                            {% endif %}
+                            {% if reservation.annonce.trajet is defined %}
+                            <p>Trajet: {{ reservation.annonce.trajet.departurePoint }} → {{ reservation.annonce.trajet.arrivalPoint }}</p>
+                            {% endif %}
+                        </div>
+                        {% elseif reservation.type == 'EVENT' and reservation.annonceEvent %}
+                        <div>
+                            <span class="font-medium">Événement associé:</span> 
+                            <p>ID: {{ reservation.annonceEvent.id }}</p>
+                            {% if reservation.annonceEvent.titre is defined %}
+                            <p>Titre: {{ reservation.annonceEvent.titre }}</p>
+                            {% endif %}
+                            {% if reservation.annonceEvent.event is defined %}
+                            <p>Événement: {{ reservation.annonceEvent.event.title }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% if reservation.comment %}
+                        <div>
+                            <span class="font-medium">Commentaire:</span> 
+                            <p class="text-gray-700 mt-1">{{ reservation.comment }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Informations utilisateur</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="font-medium">ID Utilisateur:</span> {{ reservation.userId }}
+                        </div>
+                        <div>
+                            <span class="font-medium">Date de mise à jour:</span> {{ reservation.updatedAt|date('d/m/Y H:i') }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-200 flex space-x-3">
+                <a href="{{ path('app_admin_reservation_edit', {'id': reservation.id}) }}" class="btn btn-yellow">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Modifier
+                </a>
+                <form action="{{ path('app_admin_reservation_delete', {'id': reservation.id}) }}" method="post" class="inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réservation ? Cette action libérera la place associée dans l\'annonce.')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reservation.id) }}">
+                    <button type="submit" class="btn btn-red">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

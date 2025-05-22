@@ -1,0 +1,125 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Liste des événements - Conducteur{% endblock %}
+
+{% block content %}
+    <div class="w-full">
+        <div class="glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-8 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2 text-gray-800">Liste des événements</h1>
+                    <p class="text-gray-600">Consultez et gérez les événements universitaires pour le covoiturage.</p>
+                </div>
+                <a href="{{ path('app_conducteur_event_create') }}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-dark transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Ajouter un événement
+                </a>
+            </div>
+
+            {% for message in app.flashes('success') %}
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
+            
+            {% for message in app.flashes('error') %}
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
+            
+            {% for message in app.flashes('info') %}
+                <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
+
+            {% if events|length > 0 %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for event in events %}
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                            <div class="p-6">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="font-bold text-xl text-gray-900">{{ event.nom }}</h3>
+                                        <p class="text-gray-600">{{ event.typeEvent.nom }}</p>
+                                    </div>
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">{{ event.status }}</span>
+                                </div>
+                                
+                                <div class="mt-4 space-y-2">
+                                    <div class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        <span class="text-gray-700">{{ event.lieu }}</span>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <span class="text-gray-700">{{ event.dateEvent|date('d/m/Y') }} à {{ event.heureEvent|date('H:i') }}</span>
+                                    </div>
+                                </div>
+                                
+                                {% if event.description %}
+                                    <div class="mt-4">
+                                        <p class="text-sm text-gray-600">{{ event.description|length > 100 ? event.description|slice(0, 100) ~ '...' : event.description }}</p>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="mt-4 flex flex-wrap gap-2 justify-end">
+                                    <a href="{{ path('app_conducteur_event_annonces', {'id': event.idEvent}) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-lg hover:bg-blue-200 transition-colors duration-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        Voir les annonces
+                                    </a>
+                                    <a href="{{ path('app_conducteur_event_edit', {'id': event.idEvent}) }}" class="inline-flex items-center px-3 py-1.5 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-lg hover:bg-yellow-200 transition-colors duration-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        Modifier
+                                    </a>
+                                    <form action="{{ path('app_conducteur_event_terminer_all', {'id': event.idEvent}) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir terminer toutes les annonces de cet événement?')">
+                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-lg hover:bg-green-200 transition-colors duration-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Terminer tout
+                                        </button>
+                                    </form>
+                                    <form action="{{ path('app_conducteur_event_delete', {'id': event.idEvent}) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet événement?')">
+                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-800 text-xs font-medium rounded-lg hover:bg-red-200 transition-colors duration-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Supprimer
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-gray-50 rounded-xl p-8 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 class="mt-4 text-xl font-medium text-gray-900">Aucun événement trouvé</h3>
+                    <p class="mt-2 text-gray-600">Il n'y a actuellement aucun événement disponible.</p>
+                    <a href="{{ path('app_conducteur_event_create') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-dark transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Créer votre premier événement
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %} 

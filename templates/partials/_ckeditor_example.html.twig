@@ -1,0 +1,23 @@
+{# Example of using CKEditor with Stimulus controller #}
+<div class="mb-3">
+    <label for="example-editor" class="form-label">Éditeur de texte</label>
+    <textarea 
+        id="example-editor" 
+        class="form-control" 
+        data-controller="ckeditor" 
+        data-ckeditor-config="default" 
+        placeholder="Tapez votre contenu ici..."></textarea>
+    <div class="form-text">Utilisez l'éditeur pour formater votre texte.</div>
+</div>
+
+{# 
+How to use the CKEditor Stimulus controller:
+
+1. Add the data-controller="ckeditor" attribute to your textarea
+2. Optionally specify a configuration with data-ckeditor-config="your_config_name"
+3. Make sure CKEditor is loaded in your template:
+
+   <script src="https://cdn.ckeditor.com/ckeditor5/38.0.1/classic/ckeditor.js"></script>
+
+   It's already included in base.html.twig
+#} 

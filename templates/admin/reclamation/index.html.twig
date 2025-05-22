@@ -1,0 +1,324 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration des réclamations{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header with animation -->
+        <div class="mb-10 animate-fade-in-down">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-2 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Gestion des réclamations</h1>
+            <p class="text-gray-600 text-lg">Visualisez et gérez toutes les réclamations des utilisateurs</p>
+            <div class="h-1 w-32 bg-gradient-to-r from-primary to-blue-600 rounded mt-4"></div>
+        </div>
+        
+        <!-- Alert messages with improved animations -->
+        {% for message in app.flashes('success') %}
+            <div class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-r-xl shadow-md animate-fade-in transform transition-all duration-300 hover:scale-[1.01]">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="font-medium">{{ message }}</span>
+                </div>
+            </div>
+        {% endfor %}
+        
+        {% for message in app.flashes('error') %}
+            <div class="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-r-xl shadow-md animate-fade-in transform transition-all duration-300 hover:scale-[1.01]">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                    </svg>
+                    <span class="font-medium">{{ message }}</span>
+                </div>
+            </div>
+        {% endfor %}
+        
+        <!-- Filter buttons with animations and improved styling -->
+        <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-fade-in">
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ path('app_admin_reclamation_index') }}" 
+                   class="px-5 py-2.5 rounded-lg font-medium text-sm transform transition-all duration-300 hover:scale-105 shadow-sm {% if app.request.query.get('filter') is null %}bg-gradient-to-r from-primary to-blue-600 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:border-primary hover:text-primary{% endif %}">
+                   <span class="flex items-center">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                       </svg>
+                       Toutes
+                   </span>
+                </a>
+                <a href="{{ path('app_admin_reclamation_index', {'filter': 'pending'}) }}" 
+                   class="px-5 py-2.5 rounded-lg font-medium text-sm transform transition-all duration-300 hover:scale-105 shadow-sm {% if app.request.query.get('filter') == 'pending' %}bg-gradient-to-r from-yellow-400 to-amber-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:border-yellow-400 hover:text-yellow-600{% endif %}">
+                   <span class="flex items-center">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                       </svg>
+                       En attente
+                   </span>
+                </a>
+                <a href="{{ path('app_admin_reclamation_index', {'filter': 'in_progress'}) }}" 
+                   class="px-5 py-2.5 rounded-lg font-medium text-sm transform transition-all duration-300 hover:scale-105 shadow-sm {% if app.request.query.get('filter') == 'in_progress' %}bg-gradient-to-r from-blue-400 to-indigo-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:border-blue-400 hover:text-blue-600{% endif %}">
+                   <span class="flex items-center">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                       </svg>
+                       En cours
+                   </span>
+                </a>
+                <a href="{{ path('app_admin_reclamation_index', {'filter': 'resolved'}) }}" 
+                   class="px-5 py-2.5 rounded-lg font-medium text-sm transform transition-all duration-300 hover:scale-105 shadow-sm {% if app.request.query.get('filter') == 'resolved' %}bg-gradient-to-r from-green-400 to-teal-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:border-green-400 hover:text-green-600{% endif %}">
+                   <span class="flex items-center">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                       </svg>
+                       Résolues
+                   </span>
+                </a>
+                <a href="{{ path('app_admin_reclamation_index', {'filter': 'rejected'}) }}" 
+                   class="px-5 py-2.5 rounded-lg font-medium text-sm transform transition-all duration-300 hover:scale-105 shadow-sm {% if app.request.query.get('filter') == 'rejected' %}bg-gradient-to-r from-red-400 to-pink-500 text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:border-red-400 hover:text-red-600{% endif %}">
+                   <span class="flex items-center">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                       </svg>
+                       Rejetées
+                   </span>
+                </a>
+                
+                <!-- Export Excel Button -->
+                <a href="{{ path('app_admin_reclamation_export_excel') }}" 
+                   class="px-5 py-2.5 rounded-lg font-medium text-sm transform transition-all duration-300 hover:scale-105 shadow-sm bg-green-600 text-white hover:bg-green-700">
+                   <span class="flex items-center">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                       </svg>
+                       Exporter Excel
+                   </span>
+                </a>
+            </div>
+            
+            <!-- Enhanced search form -->
+            <form method="get" class="relative text-gray-600 w-full sm:w-auto group">
+                <div class="relative">
+                    <input class="border-2 border-gray-300 bg-white h-11 px-5 pl-12 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary w-full min-w-[300px] transition-all duration-200 shadow-sm"
+                        type="search" name="search" placeholder="Rechercher...">
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors duration-200">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary text-white rounded-md p-1.5 opacity-90 hover:opacity-100 transition-opacity duration-200">
+                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Reclamation cards with enhanced design and animations -->
+        {% if pagination.items|length > 0 %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {% for reclamation in pagination %}
+                    <div class="bg-white rounded-xl shadow-lg p-6 transition-all duration-500 hover:shadow-xl border border-gray-100 transform hover:-translate-y-1 animate-fade-in-up" style="animation-delay: {{ loop.index0 * 0.1 }}s">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center">
+                                <div class="h-12 w-12 flex-shrink-0 rounded-full overflow-hidden shadow-md border-2 border-white">
+                                    {% if reclamation.user.imagePath %}
+                                        <img src="{{ asset(reclamation.user.imagePath) }}" alt="Profile" class="h-full w-full object-cover">
+                                    {% else %}
+                                        <div class="h-full w-full flex items-center justify-center bg-gradient-to-r from-primary to-blue-600 text-white text-lg uppercase font-bold">
+                                            {{ reclamation.user.prenom|first }}{{ reclamation.user.nom|first }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3">
+                                    <div class="text-sm font-medium text-gray-900">{{ reclamation.user.prenom }} {{ reclamation.user.nom }}</div>
+                                    <div class="text-xs text-gray-500">{{ reclamation.user.email }}</div>
+                                </div>
+                            </div>
+                            
+                            {% set statusClasses = {
+                                'pending': 'bg-gradient-to-r from-yellow-400 to-amber-500 animate-pulse',
+                                'in_progress': 'bg-gradient-to-r from-blue-400 to-indigo-500',
+                                'resolved': 'bg-gradient-to-r from-green-400 to-teal-500',
+                                'rejected': 'bg-gradient-to-r from-red-400 to-pink-500'
+                            } %}
+                            
+                            {% set statusLabels = {
+                                'pending': 'En attente',
+                                'in_progress': 'En cours',
+                                'resolved': 'Résolu',
+                                'rejected': 'Rejeté'
+                            } %}
+                            
+                            {% set statusIcons = {
+                                'pending': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />',
+                                'in_progress': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />',
+                                'resolved': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />',
+                                'rejected': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />'
+                            } %}
+                            
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ statusClasses[reclamation.status] }} text-white shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    {{ statusIcons[reclamation.status]|raw }}
+                                </svg>
+                                {{ statusLabels[reclamation.status] }}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <h3 class="text-lg font-bold text-gray-900 mb-2 group">
+                                {{ reclamation.subject }}
+                                <span class="inline-block transition-all duration-300 group-hover:translate-x-1">→</span>
+                            </h3>
+                            <p class="text-sm text-gray-600 line-clamp-3 bg-gray-50 p-3 rounded-lg">{{ reclamation.description|slice(0, 120) }}{% if reclamation.description|length > 120 %}...{% endif %}</p>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mb-5">
+                            <div class="text-xs text-gray-500">
+                                {{ reclamation.date|date('d/m/Y H:i') }}
+                            </div>
+                            
+                            <div class="text-xs font-medium {% if reclamation.reponses is not empty %}text-green-600{% else %}text-red-600{% endif %} bg-{% if reclamation.reponses is not empty %}green{% else %}red{% endif %}-50 rounded-full px-3 py-1 flex items-center">
+                                {% if reclamation.reponses is not empty %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Répondu
+                                {% else %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Sans réponse
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-gray-100 flex justify-between gap-3">
+                            <a href="{{ path('app_admin_reclamation_show', {'id': reclamation.id}) }}" 
+                               class="text-center text-sm font-medium text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 transition-colors duration-300 py-2.5 px-4 rounded-lg shadow-sm hover:shadow flex-1 transform hover:scale-105">
+                                <span class="flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Voir
+                                </span>
+                            </a>
+                            
+                            {% if reclamation.reponses is empty or reclamation.status == 'in_progress' %}
+                                <a href="{{ path('app_admin_reclamation_reply', {'id': reclamation.id}) }}" 
+                                   class="text-center text-sm font-medium text-orange-600 hover:text-white bg-orange-50 hover:bg-orange-600 transition-colors duration-300 py-2.5 px-4 rounded-lg shadow-sm hover:shadow flex-1 transform hover:scale-105">
+                                    <span class="flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                        </svg>
+                                        Répondre
+                                    </span>
+                                </a>
+                            {% endif %}
+                            
+                            <form method="post" action="{{ path('app_admin_reclamation_delete', {'id': reclamation.id}) }}" class="inline flex-1" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                                <button type="submit" class="w-full text-center text-sm font-medium text-red-600 hover:text-white bg-red-50 hover:bg-red-600 transition-colors duration-300 py-2.5 px-4 rounded-lg shadow-sm hover:shadow transform hover:scale-105">
+                                    <span class="flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        Supprimer
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination navigation -->
+            <div class="flex justify-center mt-8">
+                <div class="bg-white shadow-md rounded-lg p-4">
+                    {{ knp_pagination_render(pagination, 'pagination/custom_pagination.html.twig') }}
+                </div>
+            </div>
+        {% else %}
+            <!-- Empty state with animation -->
+            <div class="bg-white p-10 rounded-xl shadow-xl text-center max-w-2xl mx-auto animate-fade-in-up">
+                <div class="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h.01M12 12h.01M15 12h.01M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">Aucune réclamation trouvée</h3>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto">Il n'y a pas de réclamations correspondant à vos critères de recherche.</p>
+                <a href="{{ path('app_admin_reclamation_index') }}" class="inline-flex items-center px-5 py-3 bg-primary text-white font-medium rounded-lg shadow-md hover:bg-primary-dark transition-colors duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Voir toutes les réclamations
+                </a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translate3d(0, -30px, 0);
+        }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 30px, 0);
+        }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .animate-fade-in-down {
+        animation: fadeInDown 0.5s ease-out forwards;
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    /* Optional: add line clamping for text overflow */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,124 @@
+{% extends 'layouts/admin_layout.html.twig' %}
+
+{% block title %}Administration des Annonces d'Événements{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 sm:px-8">
+    <div class="py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800">Liste des Annonces d'Événements</h2>
+            <div class="text-right">
+                <a href="{{ path('app_admin_annonces') }}" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 mr-2">
+                    <i class="fas fa-car mr-1"></i> Voir les Annonces Normales
+                </a>
+            </div>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+                <p>{{ message }}</p>
+            </div>
+        {% endfor %}
+
+        <div class="bg-white overflow-hidden shadow-md rounded-lg">
+            <table class="min-w-full leading-normal">
+                <thead>
+                    <tr>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            ID
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Titre
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Événement
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Trajet
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Date de départ
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Places
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Statut
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for annonce in annonces %}
+                    <tr>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            {{ annonce.id }}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            {{ annonce.titre }}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            {% if annonce.event %}
+                                {{ annonce.event.nom }}
+                            {% else %}
+                                <span class="text-gray-400">Non défini</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            {{ annonce.departurePoint }} → {{ annonce.arrivalPoint }}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            {% if annonce.departureDate %}
+                                {{ annonce.departureDate|date('d/m/Y H:i') }}
+                            {% else %}
+                                <span class="text-gray-400">Non définie</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            {{ annonce.availableSeats }}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            {% if annonce.status == 'ouvert' %}
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full">Ouvert</span>
+                            {% elseif annonce.status == 'plein' %}
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">Plein</span>
+                            {% elseif annonce.status == 'termine' %}
+                                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full">Terminé</span>
+                            {% else %}
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">{{ annonce.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            <div class="flex space-x-2">
+                                <a href="{{ path('app_admin_annonce_event_show', {'id': annonce.id}) }}" class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ path('app_admin_annonce_event_edit', {'id': annonce.id}) }}" class="text-green-600 hover:text-green-900">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ path('app_admin_annonce_event_delete', {'id': annonce.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce?');" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ annonce.id) }}">
+                                    <button type="submit" class="text-red-600 hover:text-red-900 bg-transparent border-0 p-0">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" colspan="8">
+                            <div class="text-center py-4 text-gray-500">
+                                <p>Aucune annonce d'événement trouvée</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

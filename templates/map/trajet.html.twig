@@ -1,0 +1,187 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Carte du trajet {{ trajet.titre|default(trajet.departurePoint ~ ' → ' ~ trajet.arrivalPoint) }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 0.75rem;
+        }
+        .info-box {
+            padding: 1rem;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1rem;
+        }
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .info-item svg {
+            margin-right: 0.5rem;
+            color: #4f46e5;
+        }
+        .info-label {
+            font-weight: 600;
+            margin-right: 0.25rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ trajet.titre|default(trajet.departurePoint ~ ' → ' ~ trajet.arrivalPoint) }}</h1>
+            <p class="text-gray-600">Carte du trajet avec itinéraire</p>
+            
+            <div class="mt-4">
+                <a href="javascript:history.back()" class="inline-flex items-center text-primary hover:text-primary-dark">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Retour à la liste
+                </a>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2">
+                <div id="map"></div>
+            </div>
+            
+            <div>
+                <div class="info-box">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Informations du trajet</h2>
+                    
+                    <div class="info-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span class="info-label">Départ:</span> 
+                        <span class="text-gray-700">{{ trajet.departurePoint }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span class="info-label">Arrivée:</span>
+                        <span class="text-gray-700">{{ trajet.arrivalPoint }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="info-label">Durée:</span>
+                        <span class="text-gray-700">{{ mapData.duration }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                        <span class="info-label">Distance:</span>
+                        <span class="text-gray-700">{{ mapData.distance }} km</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="info-label">Prix:</span>
+                        <span class="text-gray-700 font-medium">{{ trajet.price }} DT</span>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Légende</h2>
+                    
+                    <div class="info-item">
+                        <div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
+                        <span>Point de départ</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
+                        <span>Point d'arrivée</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="w-4 h-1 bg-blue-500 mr-2"></div>
+                        <span>Itinéraire</span>
+                    </div>
+                </div>
+                
+                <div class="text-sm text-gray-500 mt-4">
+                    Données cartographiques © <a href="https://www.openstreetmap.org/copyright" target="_blank" class="text-primary hover:underline">OpenStreetMap</a> contributors
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+    <script src="https://unpkg.com/@mapbox/polyline@1.1.1/src/polyline.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Données du trajet
+            const mapData = {{ mapData|json_encode|raw }};
+            
+            // Création de la carte
+            const map = L.map('map');
+            
+            // Ajouter la couche de tuiles OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Ajouter les marqueurs pour le point de départ et d'arrivée
+            const departureMarker = L.marker([mapData.departurePoint.lat, mapData.departurePoint.lon], {
+                icon: L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: #10b981; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                })
+            }).addTo(map);
+            
+            const arrivalMarker = L.marker([mapData.arrivalPoint.lat, mapData.arrivalPoint.lon], {
+                icon: L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: #ef4444; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                })
+            }).addTo(map);
+            
+            // Décoder le polyline et créer un itinéraire
+            const decodedRoute = polyline.decode(mapData.route);
+            const routeLatLngs = decodedRoute.map(coords => [coords[0], coords[1]]);
+            const route = L.polyline(routeLatLngs, {
+                color: '#3b82f6',
+                weight: 5,
+                opacity: 0.7
+            }).addTo(map);
+            
+            // Ajuster la vue de la carte pour montrer l'itinéraire complet
+            map.fitBounds(route.getBounds(), {
+                padding: [30, 30]
+            });
+            
+            // Ajouter popup aux marqueurs
+            departureMarker.bindPopup(`<b>Départ:</b> ${mapData.departurePoint.display_name}`);
+            arrivalMarker.bindPopup(`<b>Arrivée:</b> ${mapData.arrivalPoint.display_name}`);
+        });
+    </script>
+{% endblock %} 

@@ -1,0 +1,288 @@
+{% extends 'layouts/user_layout.html.twig' %}
+
+{% block title %}Conversation{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .message-container {
+            height: 400px;
+            overflow-y: auto;
+        }
+        
+        .message-bubble {
+            max-width: 80%;
+            position: relative;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message-bubble.mine {
+            background-color: #dcf8c6;
+            margin-left: auto;
+            border-top-right-radius: 5px;
+        }
+        
+        .message-bubble.other {
+            background-color: #ffffff;
+            margin-right: auto;
+            border-top-left-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            color: #999;
+            position: absolute;
+            bottom: 3px;
+            right: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="w-full">
+    <div class="glass-card bg-white/90 backdrop-blur-sm border border-white/30 rounded-xl shadow-xl p-8 mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold mb-2 text-gray-800">
+                    Conversation - 
+                    {% if type == 'TRAJET' and reservation.annonce %}
+                        {{ reservation.annonce.trajet.getDeparturePoint() }} → {{ reservation.annonce.trajet.getArrivalPoint() }}
+                    {% elseif type == 'EVENT' and reservation.annonceEvent %}
+                        {{ reservation.annonceEvent.departurePoint }} → {{ reservation.annonceEvent.arrivalPoint }}
+                    {% else %}
+                        Réservation #{{ reservation.id }}
+                    {% endif %}
+                </h1>
+                <p class="text-gray-600">
+                    Votre conversation avec 
+                    {% if otherUser %}
+                        {{ otherUser.prenom }} {{ otherUser.nom }}
+                    {% else %}
+                        l'autre utilisateur
+                    {% endif %}
+                </p>
+            </div>
+            {% if app.user.roleCode == 'CONDUCTEUR' %}
+                <a href="{{ path('app_conducteur_reservations') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Retour à mes réservations
+                </a>
+            {% else %}
+                <a href="{{ path('app_passager_mes_reservations') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Retour à mes réservations
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="bg-gray-100 rounded-xl p-4 message-container" id="message-container">
+            {% if messages is empty %}
+                <div class="text-center py-8" id="empty-message">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <p class="mt-3 text-gray-600">Aucun message dans cette conversation</p>
+                    <p class="text-gray-500">Envoyez un message pour commencer à discuter</p>
+                </div>
+            {% else %}
+                <div id="messages-list">
+                    {% for message in messages %}
+                        <div class="message-item">
+                            <div class="message-bubble {% if message.senderId == app.user.id %}mine{% else %}other{% endif %}">
+                                <div class="message-content">
+                                    {{ message.content|nl2br }}
+                                </div>
+                                <div class="message-time">
+                                    {{ message.createdAt|date('H:i') }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mt-4">
+            <form id="message-form" action="{{ path('app_chat_send', {'reservationId': reservation.id, 'type': type}) }}" method="post">
+                <div class="flex">
+                    <textarea 
+                        name="message" 
+                        id="message-input"
+                        rows="3" 
+                        class="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                        placeholder="Écrivez votre message..."></textarea>
+                    <button 
+                        type="submit" 
+                        class="px-6 bg-primary text-white rounded-r-lg hover:bg-primary-dark transition-colors duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables globales
+            const container = document.getElementById('message-container');
+            let messagesList = document.getElementById('messages-list');
+            const emptyMessage = document.getElementById('empty-message');
+            const messageForm = document.getElementById('message-form');
+            const messageInput = document.getElementById('message-input');
+            const reservationId = {{ reservation.id }};
+            const reservationType = "{{ type }}";
+            const currentUserId = {{ app.user.id }};
+            let lastMessageId = 0;
+            
+            // Créer le conteneur de messages s'il n'existe pas encore
+            if (!messagesList) {
+                messagesList = document.createElement('div');
+                messagesList.id = 'messages-list';
+                container.appendChild(messagesList);
+                
+                // Si des messages sont déjà affichés, masquer le message "Aucun message"
+                if (document.querySelectorAll('.message-item').length > 0) {
+                    if (emptyMessage) {
+                        emptyMessage.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Initialiser le dernier ID de message
+            const allMessages = document.querySelectorAll('.message-item');
+            if (allMessages.length > 0) {
+                // On suppose que les messages sont affichés par ordre chronologique
+                // et que le dernier message affiché a l'ID le plus élevé
+                lastMessageId = allMessages.length;
+            }
+            
+            // Auto-scroll to bottom of messages
+            container.scrollTop = container.scrollHeight;
+            
+            // Auto-focus on textarea
+            messageInput.focus();
+            
+            // Envoyer un message via AJAX
+            messageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const message = messageInput.value.trim();
+                if (!message) return;
+                
+                // Ajouter le message visuellement immédiatement
+                addMessage({
+                    content: message,
+                    senderId: currentUserId,
+                    createdAt: new Date()
+                });
+                
+                // Vider le champ de saisie
+                messageInput.value = '';
+                
+                // Envoyer le message au serveur
+                fetch(messageForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'message=' + encodeURIComponent(message)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Message envoyé avec succès');
+                    } else {
+                        console.error('Erreur lors de l\'envoi du message');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+            });
+            
+            // Vérifier les nouveaux messages toutes les 3 secondes
+            setInterval(fetchNewMessages, 3000);
+            
+            function fetchNewMessages() {
+                fetch(`/chat/get-new-messages/${reservationId}/${reservationType}/${lastMessageId}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.messages && data.messages.length > 0) {
+                        // Masquer le message "Aucun message" si nécessaire
+                        if (emptyMessage) {
+                            emptyMessage.style.display = 'none';
+                        }
+                        
+                        // Ajouter les nouveaux messages
+                        data.messages.forEach(message => {
+                            addMessage(message);
+                            console.log('Nouveau message ajouté:', message);
+                        });
+                        
+                        // Mettre à jour l'ID du dernier message
+                        if (data.messages.length > 0) {
+                            lastMessageId = data.messages[data.messages.length - 1].id;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des nouveaux messages:', error);
+                });
+            }
+            
+            function addMessage(message) {
+                console.log('Ajout du message:', message);
+                
+                // Masquer le message "Aucun message" si nécessaire
+                if (emptyMessage) {
+                    emptyMessage.style.display = 'none';
+                }
+                
+                // Créer les éléments HTML pour le message
+                const messageItem = document.createElement('div');
+                messageItem.className = 'message-item';
+                
+                const messageBubble = document.createElement('div');
+                messageBubble.className = `message-bubble ${message.senderId == currentUserId ? 'mine' : 'other'}`;
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.innerHTML = message.content.replace(/\n/g, '<br>');
+                
+                const messageTime = document.createElement('div');
+                messageTime.className = 'message-time';
+                const time = new Date(message.createdAt);
+                messageTime.textContent = `${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`;
+                
+                // Assembler les éléments
+                messageBubble.appendChild(messageContent);
+                messageBubble.appendChild(messageTime);
+                messageItem.appendChild(messageBubble);
+                
+                // Ajouter le message à la liste
+                messagesList.appendChild(messageItem);
+                
+                // Scroller en bas
+                container.scrollTop = container.scrollHeight;
+            }
+        });
+    </script>
+{% endblock %} 

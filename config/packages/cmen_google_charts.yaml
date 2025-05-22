@@ -1,0 +1,3 @@
+cmen_google_charts:
+    version: "current"  # or a specific version like "45" 
+    language: "en"     # default language for charts 

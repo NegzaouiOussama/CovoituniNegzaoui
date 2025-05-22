@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ride Details - CovoitUni{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto p-4 max-w-5xl mb-12">
+        <div class="mb-6 flex items-center">
+            <a href="{{ path('app_rides') }}" class="text-primary hover:text-primary-dark transition-all flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Rides
+            </a>
+        </div>
+
+        <div class="card glass-card p-6 md:p-8 relative overflow-hidden mb-10">
+            <!-- Decorative elements -->
+            <div class="hidden md:block absolute top-0 right-0 w-32 h-32 bg-primary-light rounded-full blur-xl opacity-10 animate-float"></div>
+            
+            <div class="relative z-10">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <h1 class="section-title text-2xl md:text-3xl font-bold mb-2 md:mb-0">{{ ride.titre }}</h1>
+                    <span class="font-bold text-primary text-xl md:text-2xl">{{ ride.trajet.price }} DT</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                    <div class="col-span-2">
+                        <div class="space-y-6">
+                            <div class="space-y-4">
+                                <h2 class="text-lg font-semibold">Journey Details</h2>
+                                <div class="space-y-3">
+                                    <div class="flex items-center">
+                                        <span class="w-10 h-10 flex items-center justify-center bg-primary-ultra-light rounded-full mr-4 text-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm text-gray-500">From</p>
+                                            <p class="font-medium">{{ ride.trajet.getDeparturePoint() }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="w-10 h-10 flex items-center justify-center bg-primary-ultra-light rounded-full mr-4 text-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm text-gray-500">To</p>
+                                            <p class="font-medium">{{ ride.trajet.arrivalPoint }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="w-10 h-10 flex items-center justify-center bg-primary-ultra-light rounded-full mr-4 text-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm text-gray-500">Date & Time</p>
+                                            <p class="font-medium">{{ ride.departureDate|date('d M Y H:i') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h2 class="text-lg font-semibold mb-4">Description</h2>
+                                <p class="text-gray-700">{{ ride.description }}</p>
+                            </div>
+                            
+                            {% if ride.preferences %}
+                                <div>
+                                    <h2 class="text-lg font-semibold mb-4">Preferences</h2>
+                                    <p class="text-gray-700">{{ ride.preferences }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-span-1">
+                        <div class="glass-card p-6 relative">
+                            <h2 class="text-lg font-semibold mb-4">Booking Information</h2>
+                            <div class="space-y-3 text-sm mb-6">
+                                <p class="flex items-center">
+                                    <span class="w-8 h-8 flex items-center justify-center bg-primary-ultra-light rounded-full mr-3 text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                    </span>
+                                    {{ ride.availableSeats }} seats available
+                                </p>
+                                <p class="flex items-center">
+                                    <span class="w-8 h-8 flex items-center justify-center bg-primary-ultra-light rounded-full mr-3 text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                        </svg>
+                                    </span>
+                                    Driver: {{ ride.utilisateur.prenom }} {{ ride.utilisateur.nom }}
+                                </p>
+                            </div>
+                            
+                            <a href="#" class="btn btn-primary block text-center py-3 rounded-xl font-medium transition-all {{ ride.availableSeats > 0 ? '' : 'opacity-50 cursor-not-allowed' }}" {{ ride.availableSeats > 0 ? '' : 'disabled' }}>
+                                {{ ride.availableSeats > 0 ? 'Reserve a Seat' : 'No Seats Available' }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h2 class="text-lg font-semibold mb-4">Vehicle Information</h2>
+                    <div class="glass-card p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Car Model</p>
+                                <p class="font-medium">{{ ride.vehiculeModel }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Car Color</p>
+                                <p class="font-medium">{{ ride.vehiculeColor }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">License Plate</p>
+                                <p class="font-medium">{{ ride.licencePlate }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

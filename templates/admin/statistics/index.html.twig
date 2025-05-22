@@ -1,0 +1,338 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stats-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-wrapper {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8 animate-fade-in" style="animation-delay: 0.1s">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Tableau de Bord Statistiques</h1>
+            <p class="text-gray-600">Analyse des réclamations et des avis</p>
+        </div>
+        
+        {% if error is defined %}
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow-sm animate-fade-in" role="alert">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm">
+                        <strong>Une erreur est survenue:</strong> {{ error }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if hasDemoData is defined and hasDemoData %}
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded-md shadow-sm animate-fade-in" role="alert">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm">
+                        <strong>Données de démonstration affichées.</strong> Aucune donnée réelle n'a été trouvée dans la base de données. Ces graphiques montrent des exemples fictifs à titre d'illustration.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Réclamations par statut -->
+            <div class="stats-container animate-fade-in" style="animation-delay: 0.2s">
+                <div class="chart-wrapper">
+                    <div class="chart-title">Répartition des Réclamations par Statut</div>
+                    <div class="flex justify-center">
+                        <div id="piechart-div" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Évolution des réclamations -->
+            <div class="stats-container animate-fade-in" style="animation-delay: 0.3s">
+                <div class="chart-wrapper">
+                    <div class="chart-title">Évolution des Réclamations par Mois</div>
+                    <div class="flex justify-center">
+                        <div id="linechart-div" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Moyenne des avis -->
+            <div class="stats-container lg:col-span-2 animate-fade-in" style="animation-delay: 0.4s">
+                <div class="chart-wrapper">
+                    <div class="chart-title">Moyenne des Avis par Mois</div>
+                    <div class="flex justify-center">
+                        <div id="columnchart-div" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Debug section - only visible in dev mode with toggle -->
+        {% if app.environment == 'dev' %}
+        <div class="mt-8 bg-gray-50 rounded-lg shadow-sm overflow-hidden">
+            <button id="toggle-debug" class="w-full px-4 py-3 bg-gray-100 text-gray-700 text-left flex justify-between items-center hover:bg-gray-200 focus:outline-none transition duration-200">
+                <span class="font-medium flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    Informations de développement
+                </span>
+                <svg id="chevron-down" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            
+            <div id="debug-content" class="hidden px-4 py-3">
+                {% if error is defined %}
+                    <div class="bg-red-100 p-3 rounded mb-3">
+                        <h4 class="font-medium text-red-800 text-sm">Erreur:</h4>
+                        <p class="text-red-700 text-xs">{{ error }}</p>
+                    </div>
+                {% endif %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <!-- Chart summary info -->
+                    <div class="bg-white rounded shadow-sm p-3">
+                        <h4 class="text-xs font-medium text-gray-700 mb-2">Résumé des données</h4>
+                        <ul class="text-xs space-y-1">
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Statuts de réclamations:</span>
+                                <span class="font-medium">{{ reclamationPieData|length - 1 }} types</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Périodes d'évolution:</span>
+                                <span class="font-medium">{{ monthlyData|length - 1 }} mois</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Périodes d'avis:</span>
+                                <span class="font-medium">{{ avisData|length - 1 }} mois</span>
+                            </li>
+                            <li class="flex justify-between border-t border-gray-100 pt-1 mt-1">
+                                <span class="text-gray-600">Données de démo:</span>
+                                <span class="font-medium {% if hasDemoData %}text-yellow-600{% else %}text-green-600{% endif %}">{{ hasDemoData ? 'Oui' : 'Non' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Collapsible data sections -->
+                <div class="space-y-2">
+                    <div class="border border-gray-200 rounded overflow-hidden">
+                        <button class="debug-toggle w-full px-3 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left flex justify-between items-center hover:bg-gray-100 focus:outline-none">
+                            <span>Réclamations par Statut</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="debug-content hidden">
+                            <pre class="text-xs bg-white p-2 overflow-auto max-h-40">{{ reclamationPieData|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded overflow-hidden">
+                        <button class="debug-toggle w-full px-3 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left flex justify-between items-center hover:bg-gray-100 focus:outline-none">
+                            <span>Évolution des Réclamations</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="debug-content hidden">
+                            <pre class="text-xs bg-white p-2 overflow-auto max-h-40">{{ monthlyData|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded overflow-hidden">
+                        <button class="debug-toggle w-full px-3 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left flex justify-between items-center hover:bg-gray-100 focus:outline-none">
+                            <span>Moyenne des Avis</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="debug-content hidden">
+                            <pre class="text-xs bg-white p-2 overflow-auto max-h-40">{{ avisData|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</pre>
+                        </div>
+                    </div>
+                    
+                    {% if debug is defined %}
+                    <div class="border border-gray-200 rounded overflow-hidden">
+                        <button class="debug-toggle w-full px-3 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left flex justify-between items-center hover:bg-gray-100 focus:outline-none">
+                            <span>Données complètes de débogage</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="debug-content hidden">
+                            <pre class="text-xs bg-white p-2 overflow-auto max-h-40">{{ debug|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Debug panel toggle functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                const toggleButton = document.getElementById('toggle-debug');
+                const debugContent = document.getElementById('debug-content');
+                const chevronIcon = document.getElementById('chevron-down');
+                
+                if (toggleButton && debugContent) {
+                    toggleButton.addEventListener('click', function() {
+                        debugContent.classList.toggle('hidden');
+                        chevronIcon.classList.toggle('transform');
+                        chevronIcon.classList.toggle('rotate-180');
+                    });
+                }
+                
+                // Sub-section toggles
+                document.querySelectorAll('.debug-toggle').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const content = this.nextElementSibling;
+                        content.classList.toggle('hidden');
+                        const icon = this.querySelector('svg');
+                        icon.classList.toggle('transform');
+                        icon.classList.toggle('rotate-180');
+                    });
+                });
+            });
+        </script>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        // Wrap in document ready to ensure DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(drawCharts);
+
+            function drawCharts() {
+                try {
+                    console.log("Starting chart rendering...");
+                    
+                    // Draw pie chart
+                    try {
+                        var pieData = {{ reclamationPieData|json_encode|raw }};
+                        console.log("Pie chart data:", pieData);
+                        
+                        if (!Array.isArray(pieData)) {
+                            throw new Error("Pie chart data is not an array");
+                        }
+                        
+                        var pieOptions = {{ pieChartOptions|json_encode|raw }};
+                        var pieChart = new google.visualization.PieChart(document.getElementById('piechart-div'));
+                        var pieDataTable = google.visualization.arrayToDataTable(pieData);
+                        pieChart.draw(pieDataTable, pieOptions);
+                        console.log("Pie chart drawn successfully");
+                    } catch(pieError) {
+                        console.error("Error drawing pie chart:", pieError);
+                        document.getElementById('piechart-div').innerHTML = 
+                            '<div class="bg-red-100 p-4 rounded"><p class="text-red-700">Erreur lors du chargement du graphique: ' + 
+                            pieError.message + '</p></div>';
+                    }
+
+                    // Draw line chart
+                    try {
+                        var lineData = {{ monthlyData|json_encode|raw }};
+                        console.log("Line chart data:", lineData);
+                        
+                        if (!Array.isArray(lineData)) {
+                            throw new Error("Line chart data is not an array");
+                        }
+                        
+                        var lineOptions = {{ lineChartOptions|json_encode|raw }};
+                        var lineChart = new google.visualization.LineChart(document.getElementById('linechart-div'));
+                        var lineDataTable = google.visualization.arrayToDataTable(lineData);
+                        lineChart.draw(lineDataTable, lineOptions);
+                        console.log("Line chart drawn successfully");
+                    } catch(lineError) {
+                        console.error("Error drawing line chart:", lineError);
+                        document.getElementById('linechart-div').innerHTML = 
+                            '<div class="bg-red-100 p-4 rounded"><p class="text-red-700">Erreur lors du chargement du graphique: ' + 
+                            lineError.message + '</p></div>';
+                    }
+
+                    // Draw column chart
+                    try {
+                        var columnData = {{ avisData|json_encode|raw }};
+                        console.log("Column chart data:", columnData);
+                        
+                        if (!Array.isArray(columnData)) {
+                            throw new Error("Column chart data is not an array");
+                        }
+                        
+                        var columnOptions = {{ columnChartOptions|json_encode|raw }};
+                        var columnChart = new google.visualization.ColumnChart(document.getElementById('columnchart-div'));
+                        var columnDataTable = google.visualization.arrayToDataTable(columnData);
+                        columnChart.draw(columnDataTable, columnOptions);
+                        console.log("Column chart drawn successfully");
+                    } catch(columnError) {
+                        console.error("Error drawing column chart:", columnError);
+                        document.getElementById('columnchart-div').innerHTML = 
+                            '<div class="bg-red-100 p-4 rounded"><p class="text-red-700">Erreur lors du chargement du graphique: ' + 
+                            columnError.message + '</p></div>';
+                    }
+                    
+                    console.log("Charts rendering complete");
+                } catch (e) {
+                    console.error("General error drawing charts:", e);
+                }
+            }
+        });
+    </script>
+{% endblock %} 

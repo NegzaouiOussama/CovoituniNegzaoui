@@ -1,0 +1,183 @@
+{% extends 'layouts/admin_layout.html.twig' %}
+
+{% block title %}Détails de l'Annonce d'Événement{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 sm:px-8">
+    <div class="py-8">
+        <div class="mb-6 flex justify-between items-center">
+            <h2 class="text-2xl font-semibold text-gray-800">Détails de l'Annonce #{{ annonce.id }}</h2>
+            <div>
+                <a href="{{ path('app_admin_annonce_event_index') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                    <i class="fas fa-arrow-left mr-1"></i> Retour à la liste
+                </a>
+                <a href="{{ path('app_admin_annonce_event_edit', {'id': annonce.id}) }}" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 ml-2">
+                    <i class="fas fa-edit mr-1"></i> Modifier
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800">{{ annonce.titre }}</h3>
+                <div class="mt-2 flex items-center text-sm text-gray-600">
+                    <span class="mr-2">
+                        <i class="fas fa-calendar-alt"></i> Créée le {{ annonce.createdAt|date('d/m/Y H:i') }}
+                    </span>
+                    {% if annonce.updatedAt %}
+                        <span>
+                            <i class="fas fa-edit"></i> Mise à jour le {{ annonce.updatedAt|date('d/m/Y H:i') }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-3">Informations générales</h4>
+                    <div class="space-y-2">
+                        <div>
+                            <span class="font-medium">Événement associé:</span> 
+                            {% if annonce.event %}
+                                <span>{{ annonce.event.nom }}</span>
+                            {% else %}
+                                <span class="text-gray-400">Non défini</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span class="font-medium">Description:</span> 
+                            <p class="text-gray-700 mt-1">{{ annonce.description }}</p>
+                        </div>
+                        <div>
+                            <span class="font-medium">Statut:</span> 
+                            {% if annonce.status == 'ouvert' %}
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full">Ouvert</span>
+                            {% elseif annonce.status == 'plein' %}
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">Plein</span>
+                            {% elseif annonce.status == 'termine' %}
+                                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full">Terminé</span>
+                            {% else %}
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">{{ annonce.status }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-700 mb-3">Détails du trajet</h4>
+                    <div class="space-y-2">
+                        <div>
+                            <span class="font-medium">Départ:</span> {{ annonce.departurePoint }}
+                        </div>
+                        <div>
+                            <span class="font-medium">Arrivée:</span> {{ annonce.arrivalPoint }}
+                        </div>
+                        <div>
+                            <span class="font-medium">Date de départ:</span> 
+                            {% if annonce.departureDate %}
+                                {{ annonce.departureDate|date('d/m/Y H:i') }}
+                            {% else %}
+                                <span class="text-gray-400">Non définie</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span class="font-medium">Prix:</span> {{ annonce.price }} €
+                        </div>
+                        <div>
+                            <span class="font-medium">Places disponibles:</span> {{ annonce.availableSeats }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-200">
+                <h4 class="text-lg font-semibold text-gray-700 mb-3">Conducteur et Véhicule</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <span class="font-medium">Conducteur:</span> 
+                        {% if annonce.driver %}
+                            {{ annonce.driver.firstname }} {{ annonce.driver.lastname }}
+                            <span class="text-gray-500">({{ annonce.driver.email }})</span>
+                        {% else %}
+                            <span class="text-gray-400">Non défini</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <span class="font-medium">Véhicule:</span> 
+                        {% if annonce.car %}
+                            {{ annonce.car.marque }} {{ annonce.car.modele }}
+                        {% else %}
+                            <span class="text-gray-400">Non défini</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if annonce.reservations is defined and annonce.reservations|length > 0 %}
+            <div class="px-6 py-4 border-t border-gray-200">
+                <h4 class="text-lg font-semibold text-gray-700 mb-3">Réservations ({{ annonce.reservations|length }})</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full leading-normal">
+                        <thead>
+                            <tr>
+                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    ID
+                                </th>
+                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    Passager
+                                </th>
+                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    Date de réservation
+                                </th>
+                                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    Statut
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in annonce.reservations %}
+                            <tr>
+                                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                    {{ reservation.id }}
+                                </td>
+                                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                    {% if reservation.user %}
+                                        {{ reservation.user.firstname }} {{ reservation.user.lastname }}
+                                    {% else %}
+                                        <span class="text-gray-400">Utilisateur inconnu</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                    {{ reservation.dateReservation|date('d/m/Y H:i') }}
+                                </td>
+                                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                                    {% if reservation.status == 'PENDING' %}
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">En attente</span>
+                                    {% elseif reservation.status == 'ACCEPTED' %}
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full">Acceptée</span>
+                                    {% elseif reservation.status == 'REJECTED' %}
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full">Refusée</span>
+                                    {% else %}
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full">{{ reservation.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <form method="post" action="{{ path('app_admin_annonce_event_delete', {'id': annonce.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ annonce.id) }}">
+                    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                        <i class="fas fa-trash mr-1"></i> Supprimer cette annonce
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,231 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier les Rôles{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header with animation -->
+        <div class="mb-10 animate-fade-in-down">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-2 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Modifier les Rôles</h1>
+            <p class="text-gray-600 text-lg">Gérer les permissions de <span class="font-semibold">{{ user.prenom }} {{ user.nom }}</span></p>
+            <div class="h-1 w-32 bg-gradient-to-r from-primary to-blue-600 rounded mt-4"></div>
+        </div>
+        
+        <!-- Alert messages with improved animations -->
+        {% for flashError in app.flashes('error') %}
+            <div class="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-r-xl shadow-md animate-fade-in transform transition-all duration-300 hover:scale-[1.01]">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                    </svg>
+                    <span class="font-medium">{{ flashError }}</span>
+                </div>
+            </div>
+        {% endfor %}
+        
+        {% for flashSuccess in app.flashes('success') %}
+            <div class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-r-xl shadow-md animate-fade-in transform transition-all duration-300 hover:scale-[1.01]">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="font-medium">{{ flashSuccess }}</span>
+                </div>
+            </div>
+        {% endfor %}
+        
+        <!-- User profile card with enhanced design -->
+        <div class="max-w-2xl mx-auto animate-fade-in-up">
+            <div class="bg-white rounded-xl shadow-lg p-8 transition-all duration-300 hover:shadow-xl border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="h-20 w-20 flex-shrink-0 rounded-full overflow-hidden shadow-md border-2 border-white transform transition-transform duration-500 hover:scale-110">
+                        {% if user.imagePath %}
+                            <img src="{{ asset(user.imagePath) }}" alt="{{ user.username }}" class="h-full w-full object-cover">
+                        {% else %}
+                            <div class="h-full w-full flex items-center justify-center bg-gradient-to-r from-primary to-blue-600 text-white text-2xl uppercase font-bold">
+                                {{ user.prenom|first }}{{ user.nom|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="ml-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-1 group">
+                            {{ user.prenom }} {{ user.nom }}
+                            <span class="inline-block transition-all duration-300 group-hover:translate-x-1">→</span>
+                        </h2>
+                        <div class="text-md text-gray-500 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            {{ user.email }}
+                        </div>
+                        {% if user.roleCode %}
+                            <div class="mt-2">
+                                {% if user.roleCode == 'ADMIN' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                        Admin
+                                    </span>
+                                {% elseif user.roleCode == 'CONDUCTEUR' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        Conducteur
+                                    </span>
+                                {% elseif user.roleCode == 'PASSAGER' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        Passager
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <form method="post" class="mt-8">
+                    <input type="hidden" name="_token" value="{{ csrf_token('edit-roles' ~ user.id) }}">
+                    
+                    <div class="space-y-6 mb-8">
+                        <p class="text-lg font-bold text-gray-800 mb-4">Sélectionner un rôle:</p>
+                        
+                        <div class="grid gap-4">
+                            <label class="relative block p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary transition-colors duration-300 {% if user.roleCode == 'PASSAGER' %}ring-2 ring-primary bg-primary/5{% endif %}">
+                                <input type="radio" id="role_passager" name="role_code" value="PASSAGER" 
+                                    {% if user.roleCode == 'PASSAGER' %}checked{% endif %} 
+                                    class="sr-only peer">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-teal-500 flex items-center justify-center text-white shadow-md mr-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-lg text-gray-700">Passager</h3>
+                                        <p class="text-sm text-gray-500">Autoriser l'utilisateur à réserver des trajets</p>
+                                    </div>
+                                </div>
+                                <div class="absolute top-4 right-4 h-6 w-6 text-primary opacity-0 peer-checked:opacity-100 transition-opacity duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </label>
+                            
+                            <label class="relative block p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary transition-colors duration-300 {% if user.roleCode == 'CONDUCTEUR' %}ring-2 ring-primary bg-primary/5{% endif %}">
+                                <input type="radio" id="role_conducteur" name="role_code" value="CONDUCTEUR" 
+                                    {% if user.roleCode == 'CONDUCTEUR' %}checked{% endif %} 
+                                    class="sr-only peer">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center text-white shadow-md mr-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-lg text-gray-700">Conducteur</h3>
+                                        <p class="text-sm text-gray-500">Autoriser l'utilisateur à créer et gérer des trajets</p>
+                                    </div>
+                                </div>
+                                <div class="absolute top-4 right-4 h-6 w-6 text-primary opacity-0 peer-checked:opacity-100 transition-opacity duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </label>
+                            
+                            <label class="relative block p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary transition-colors duration-300 {% if user.roleCode == 'ADMIN' %}ring-2 ring-primary bg-primary/5{% endif %}">
+                                <input type="radio" id="role_admin" name="role_code" value="ADMIN" 
+                                    {% if user.roleCode == 'ADMIN' %}checked{% endif %} 
+                                    class="sr-only peer">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-red-400 to-pink-500 flex items-center justify-center text-white shadow-md mr-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-lg text-gray-700">Administrateur</h3>
+                                        <p class="text-sm text-gray-500">Donner un accès complet au panneau d'administration</p>
+                                    </div>
+                                </div>
+                                <div class="absolute top-4 right-4 h-6 w-6 text-primary opacity-0 peer-checked:opacity-100 transition-opacity duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between mt-10 pt-6 border-t border-gray-100">
+                        <a href="{{ path('app_admin_users') }}" class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-300 transform hover:scale-105 flex items-center shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Annuler
+                        </a>
+                        <button type="submit" class="px-6 py-3 bg-gradient-to-r from-primary to-blue-600 text-white rounded-lg hover:opacity-90 transition-all duration-300 transform hover:scale-105 flex items-center shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translate3d(0, -30px, 0);
+        }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 30px, 0);
+        }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .animate-fade-in-down {
+        animation: fadeInDown 0.5s ease-out forwards;
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+</style>
+{% endblock %} 
